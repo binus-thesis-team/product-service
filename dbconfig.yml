@@ -1,0 +1,5 @@
+local:
+    dialect: postgres
+    datasource: host=localhost dbname=product user=default password=secret sslmode=disable
+    dir: database/migrationSchema
+    table: migrations
