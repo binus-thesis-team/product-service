@@ -17,6 +17,7 @@ func Migration(db *gorm.DB) {
 	n, err := migrate.Exec(sql, "mysql", migrations, migrate.Up)
 	if err != nil {
 		fmt.Println("Error occcured:", err)
+		return
 	}
 
 	fmt.Printf("Applied %d migrations!\n", n)

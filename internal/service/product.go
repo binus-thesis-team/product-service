@@ -93,7 +93,7 @@ func (ps *productService) Delete(ctx context.Context, productID int64) (err erro
 
 	product := &model.Product{
 		Id:        productID,
-		DeletedAt: time.Now().In(time.Local).Format(time.DateTime),
+		DeletedAt: time.Now().UTC().Format(time.DateTime),
 	}
 
 	_, err = ps.productRepository.Update(ctx, product)

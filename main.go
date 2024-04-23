@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -47,7 +46,6 @@ func main() {
 	}, &databasewrapper.DatabaseWrapper{})
 
 	err = dbSql.Connect()
-	fmt.Println(err)
 
 	if err != nil {
 		os.Exit(1)

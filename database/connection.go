@@ -61,11 +61,8 @@ func (ds *DbSql) Connect() error {
 		ds.Config.TimeZone)
 
 	var errDb error
-	fmt.Println("driveName", ds.driverName)
-	fmt.Println("connString", connString)
 	ds.SqlDb, errDb = ds.Dbw.Open(ds.driverName, connString)
 	if errDb != nil {
-		fmt.Println("error connecting to database")
 		return errDb
 	}
 	ds.Conn = ds.SqlDb

@@ -83,14 +83,16 @@ func (pr *productRepository) Create(ctx context.Context, product *model.Product)
 
 	var lastInsertedId int64
 
+	now := time.Now().UTC()
+
 	execErr := sqlStmt.QueryRowContext(ctxTimeout,
 		product.Name,
 		product.Price,
 		product.Stock,
 		product.Description,
 		product.ImageUrl,
-		"NOW()",
-		"NOW()",
+		now,
+		now,
 		nil,
 	).Scan(&lastInsertedId)
 	if execErr != nil {
@@ -264,13 +266,14 @@ func (pr *productRepository) Update(ctx context.Context, product *model.Product)
 	ctxTimeout, ctxCancel := context.WithTimeout(ctx, pr.GetDbSql().GetTimeout())
 	defer ctxCancel()
 
+	now := time.Now().UTC()
 	_, execErr := sqlStmt.ExecContext(ctxTimeout,
 		product.Name,
 		product.Price,
 		product.Stock,
 		product.Description,
 		product.ImageUrl,
-		"NOW()",
+		now,
 		product.DeletedAt,
 		product.Id,
 	)
