@@ -7,15 +7,15 @@
 -- DROP TABLE products;
 
 CREATE TABLE products (
-	id serial4 NOT NULL,
+	id BIGSERIAL NOT NULL,
 	"name" text NOT NULL,
 	price float8 NOT NULL,
 	stock int8 NOT NULL,
 	description text NOT NULL,
 	image_url text NOT NULL,
-	created_at timestamp NOT NULL,
-	updated_at timestamp NOT NULL,
-	deleted_at timestamp NULL,
+	created_at timestamptz NOT NULL,
+	updated_at timestamptz NOT NULL,
+	deleted_at timestamptz NULL,
 	CONSTRAINT products_pkey PRIMARY KEY (id)
 );
 

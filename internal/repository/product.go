@@ -129,17 +129,15 @@ func (pr *productRepository) GetDetail(ctx context.Context, id int) (product *mo
 
 	result := sqlStmt.QueryRowContext(ctxTimeout, id)
 
-	productData := &model.Product{}
-
 	var createdAt, updatedAt, deletedAt sql.NullTime
 
 	if scanErr := result.Scan(
-		&productData.Id,
-		&productData.Name,
-		&productData.Price,
-		&productData.Stock,
-		&productData.Description,
-		&productData.ImageUrl,
+		&product.Id,
+		&product.Name,
+		&product.Price,
+		&product.Stock,
+		&product.Description,
+		&product.ImageUrl,
 		&createdAt,
 		&updatedAt,
 		&deletedAt,
@@ -147,13 +145,13 @@ func (pr *productRepository) GetDetail(ctx context.Context, id int) (product *mo
 		return nil, scanErr
 	}
 
-	productData.CreatedAt = createdAt.Time.In(time.Local).Format(time.DateTime)
-	productData.UpdatedAt = updatedAt.Time.In(time.Local).Format(time.DateTime)
+	product.CreatedAt = createdAt.Time.In(time.Local).Format(time.DateTime)
+	product.UpdatedAt = updatedAt.Time.In(time.Local).Format(time.DateTime)
 	if deletedAt.Valid{
 		product.DeletedAt = deletedAt.Time.In(time.Local).Format(time.DateTime)
 	}
 
-	return productData, nil
+	return product, nil
 }
 
 // GetList return products filtered using pagination

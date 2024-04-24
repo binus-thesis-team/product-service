@@ -2,15 +2,15 @@
 -- +migrate Up
 
 CREATE TABLE products (
-	id serial4 NOT NULL,
+	id BIGSERIAL NOT NULL,
 	"name" text NOT NULL,
 	price float8 NOT NULL,
 	stock int8 NOT NULL,
 	description text NOT NULL,
 	image_url text NOT NULL,
-	created_at timestamp NOT NULL DEFAULT '2024-03-24 01:46:25.635215'::timestamp without time zone,
-	updated_at timestamp NOT NULL,
-	deleted_at timestamp NOT NULL,
+	created_at timestamptz NOT NULL,
+	updated_at timestamptz NOT NULL,
+	deleted_at timestamptz NOT NULL,
 	CONSTRAINT products_pkey PRIMARY KEY (id)
 );
 
