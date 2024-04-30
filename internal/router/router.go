@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/irvankadhafi/go-boilerplate/database"
 	"github.com/irvankadhafi/go-boilerplate/pkg/middleware"
