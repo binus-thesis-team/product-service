@@ -10,6 +10,13 @@ func Add(ginEngine *gin.Engine, db *database.DbSql) {
 	productController := productController(db)
 	ginEngine.Use(middleware.Trace())
 
+	// cors configuration
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowAllOrigins = true
+	corsConfig.AddAllowMethods("OPTIONS", "PUT", "POST", "GET", "DELETE")
+
+	ginEngine.Use(cors.New(corsConfig))
+
 	ginEngine.POST("/api/products", productController.Create)
 	ginEngine.GET("/api/products/:id", productController.GetDetail)
 	ginEngine.DELETE("/api/products/:id", productController.Delete)
