@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -167,6 +168,14 @@ func (pc *ProductController) UploadImageProduct(ctx *gin.Context) {
 	dtoProduct := &dto.UploadImageProductRequest{}
 
 	if err := ctx.ShouldBind(&dtoProduct); err != nil {
+		logrus.WithContext(ctx).Error(err)
+		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
+		return
+	}
+
+	const maxFileSize = 5 << 20 // 5 MB in bytes
+	if dtoProduct.ProductImage.Size > maxFileSize {
+		err := errors.New("The file size exceeds the maximum limit of 5 MB")
 		logrus.WithContext(ctx).Error(err)
 		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
 		return
