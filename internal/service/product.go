@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"reflect"
 	"time"
 
@@ -23,6 +25,8 @@ type Product interface {
 	Update(ctx context.Context, dtoProduct *dto.UpdateProductRequest) (productID int64, err error)
 	// Delete will delete product from db by productID
 	Delete(ctx context.Context, productID int64) (err error)
+	UploadImage(ctx context.Context, dtoUploadImage *dto.UploadImageProductRequest) error
+	RemoveImage(ctx context.Context, dtoRemoveImage *dto.RemoveImageProductRequest) error
 }
 
 type productService struct {
@@ -188,4 +192,53 @@ func (ps *productService) dtoUpdateProductRequestToModelProduct(dtoProduct *dto.
 		Description: dtoProduct.Description,
 		ImageUrl:    dtoProduct.ImageUrl,
 	}
+}
+
+func (ps *productService) UploadImage(ctx context.Context, dtoUploadImage *dto.UploadImageProductRequest) error {
+	if err := ps.validateDTOUploadImageProductRequest(dtoUploadImage); err != nil {
+		return err
+	}
+
+	src, err := dtoUploadImage.ProductImage.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	// Destination
+	dst, err := os.Create(dtoUploadImage.Path)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	// Copy
+	if _, err = io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ps *productService) validateDTOUploadImageProductRequest(dtoProduct *dto.UploadImageProductRequest) error {
+	const maxFileSize = 5 << 20 // 5 MB in bytes
+	if dtoProduct.ProductImage.Size > maxFileSize {
+		return errors.New("The file size exceeds the maximum limit of 5 MB")
+	}
+
+	return nil
+}
+
+func (ps *productService) RemoveImage(ctx context.Context, dtoRemoveImage *dto.RemoveImageProductRequest) error {
+	// Check if file exists
+	if _, err := os.Stat(dtoRemoveImage.ImageUrl); os.IsNotExist(err) {
+		return err
+	}
+
+	// Delete the file
+	if err := os.Remove(dtoRemoveImage.ImageUrl); err != nil {
+		return err
+	}
+
+	return nil
 }

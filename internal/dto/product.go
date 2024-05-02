@@ -43,6 +43,7 @@ type UpdateProductRequest struct {
 
 type UploadImageProductRequest struct {
 	ProductImage *multipart.FileHeader `form:"product_image" binding:"required"`
+	Path         string
 }
 
 type UploadImageProductResponse struct {
@@ -51,5 +52,5 @@ type UploadImageProductResponse struct {
 }
 
 type RemoveImageProductRequest struct {
-	FileName string `json:"file_name" binding:"required"`
+	ImageUrl string `json:"image_url" binding:"required"`
 }

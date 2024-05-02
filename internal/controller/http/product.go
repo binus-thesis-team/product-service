@@ -1,12 +1,12 @@
 package http
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/irvankadhafi/go-boilerplate/internal/dto"
@@ -165,35 +165,28 @@ func (pc *ProductController) GetList(ctx *gin.Context) {
 }
 
 func (pc *ProductController) UploadImageProduct(ctx *gin.Context) {
-	dtoProduct := &dto.UploadImageProductRequest{}
+	dtoUploadImage := &dto.UploadImageProductRequest{}
 
-	if err := ctx.ShouldBind(&dtoProduct); err != nil {
-		logrus.WithContext(ctx).Error(err)
-		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
-		return
-	}
-
-	const maxFileSize = 5 << 20 // 5 MB in bytes
-	if dtoProduct.ProductImage.Size > maxFileSize {
-		err := errors.New("The file size exceeds the maximum limit of 5 MB")
+	if err := ctx.ShouldBind(&dtoUploadImage); err != nil {
 		logrus.WithContext(ctx).Error(err)
 		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
 		return
 	}
 
 	workDir, _ := os.Getwd()
-	filepath := filepath.Join(workDir, "", "/assets/products/", dtoProduct.ProductImage.Filename)
+	filepath := filepath.Join(workDir, "", "/assets/products/", dtoUploadImage.ProductImage.Filename)
 
-	err := ctx.SaveUploadedFile(dtoProduct.ProductImage, filepath)
-	if err != nil {
+	dtoUploadImage.Path = filepath
+
+	if err := pc.productService.UploadImage(ctx, dtoUploadImage); err != nil {
 		logrus.WithContext(ctx).Error(err)
-		httpresponse.Write(ctx, http.StatusInternalServerError, nil, err)
+		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
 		return
 	}
 
 	res := &dto.UploadImageProductResponse{
-		FileName: dtoProduct.ProductImage.Filename,
-		ImageUrl: filepath,
+		FileName: dtoUploadImage.ProductImage.Filename,
+		ImageUrl: dtoUploadImage.Path,
 	}
 
 	logrus.WithContext(ctx).WithField("Upload Product", res).Info("success upload image products")
@@ -202,28 +195,24 @@ func (pc *ProductController) UploadImageProduct(ctx *gin.Context) {
 }
 
 func (pc *ProductController) RemoveImageProduct(ctx *gin.Context) {
-	dtoProduct := &dto.RemoveImageProductRequest{}
+	dtoRemoveImage := &dto.RemoveImageProductRequest{}
 
-	if err := ctx.ShouldBindJSON(&dtoProduct); err != nil {
+	if err := ctx.ShouldBindJSON(&dtoRemoveImage); err != nil {
 		logrus.WithContext(ctx).Error(err)
 		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
 		return
 	}
 
-	workDir, _ := os.Getwd()
-	filepath := filepath.Join(workDir, "", "/assets/products/", dtoProduct.FileName)
-	fmt.Println(dtoProduct.FileName)
-	fmt.Println(filepath)
-
-	if err := os.Remove(filepath); err != nil {
+	if err := pc.productService.RemoveImage(ctx, dtoRemoveImage); err != nil {
 		logrus.WithContext(ctx).Error(err)
 		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
 		return
 	}
 
+	filename := strings.Split(dtoRemoveImage.ImageUrl, "assets/products/")[1]
 	logrus.WithContext(ctx).WithFields(logrus.Fields{
-		"file_name": dtoProduct.FileName,
+		"file_name": filename,
 	}).Info("success remove image product")
 
-	httpresponse.Write(ctx, http.StatusOK, dtoProduct.FileName, nil)
+	httpresponse.Write(ctx, http.StatusOK, filename, nil)
 }
