@@ -23,4 +23,6 @@ func Add(ginEngine *gin.Engine, db *database.DbSql) {
 	ginEngine.DELETE("/api/products/:id", productController.Delete)
 	ginEngine.PUT("/api/products/:id", productController.Update)
 	ginEngine.GET("/api/products", productController.GetList)
+	ginEngine.POST("/api/products/upload", productController.UploadImageProduct)
+	ginEngine.POST("/api/products/remove-image", productController.RemoveImageProduct)
 }

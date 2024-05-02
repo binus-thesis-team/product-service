@@ -3,6 +3,8 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -159,4 +161,60 @@ func (pc *ProductController) GetList(ctx *gin.Context) {
 	}).Info("success get products")
 
 	httpresponse.Write(ctx, http.StatusOK, products, nil)
+}
+
+func (pc *ProductController) UploadImageProduct(ctx *gin.Context) {
+	dtoProduct := &dto.UploadImageProductRequest{}
+
+	if err := ctx.ShouldBind(&dtoProduct); err != nil {
+		logrus.WithContext(ctx).Error(err)
+		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
+		return
+	}
+
+	workDir, _ := os.Getwd()
+	filepath := filepath.Join(workDir, "", "/assets/products/", dtoProduct.ProductImage.Filename)
+
+	err := ctx.SaveUploadedFile(dtoProduct.ProductImage, filepath)
+	if err != nil {
+		logrus.WithContext(ctx).Error(err)
+		httpresponse.Write(ctx, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	res := &dto.UploadImageProductResponse{
+		FileName: dtoProduct.ProductImage.Filename,
+		ImageUrl: filepath,
+	}
+
+	logrus.WithContext(ctx).WithField("Upload Product", res).Info("success upload image products")
+
+	httpresponse.Write(ctx, http.StatusOK, res, nil)
+}
+
+func (pc *ProductController) RemoveImageProduct(ctx *gin.Context) {
+	dtoProduct := &dto.RemoveImageProductRequest{}
+
+	if err := ctx.ShouldBindJSON(&dtoProduct); err != nil {
+		logrus.WithContext(ctx).Error(err)
+		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
+		return
+	}
+
+	workDir, _ := os.Getwd()
+	filepath := filepath.Join(workDir, "", "/assets/products/", dtoProduct.FileName)
+	fmt.Println(dtoProduct.FileName)
+	fmt.Println(filepath)
+
+	if err := os.Remove(filepath); err != nil {
+		logrus.WithContext(ctx).Error(err)
+		httpresponse.Write(ctx, http.StatusBadRequest, nil, err)
+		return
+	}
+
+	logrus.WithContext(ctx).WithFields(logrus.Fields{
+		"file_name": dtoProduct.FileName,
+	}).Info("success remove image product")
+
+	httpresponse.Write(ctx, http.StatusOK, dtoProduct.FileName, nil)
 }

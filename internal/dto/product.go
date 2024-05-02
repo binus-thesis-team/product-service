@@ -1,5 +1,7 @@
 package dto
 
+import "mime/multipart"
+
 type CreateProductRequest struct {
 	Name        string  `json:"name,omitempty" binding:"required"`
 	Price       float64 `json:"price,omitempty" binding:"required"`
@@ -37,4 +39,17 @@ type UpdateProductRequest struct {
 	Stock       int64   `json:"stock"`
 	Description string  `json:"description"`
 	ImageUrl    string  `json:"image_url"`
+}
+
+type UploadImageProductRequest struct {
+	ProductImage *multipart.FileHeader `form:"product_image" binding:"required"`
+}
+
+type UploadImageProductResponse struct {
+	FileName string `json:"file_name"`
+	ImageUrl string `json:"image_url"`
+}
+
+type RemoveImageProductRequest struct {
+	FileName string `json:"file_name" binding:"required"`
 }
