@@ -1,6 +1,4 @@
-
--- +migrate Up
-
+-- +migrate Up notransaction
 CREATE TABLE products (
 	id BIGSERIAL NOT NULL,
 	"name" text NOT NULL,
@@ -10,8 +8,9 @@ CREATE TABLE products (
 	image_url text NOT NULL,
 	created_at timestamptz NOT NULL,
 	updated_at timestamptz NOT NULL,
-	deleted_at timestamptz NOT NULL,
+	deleted_at timestamptz NULL,
 	CONSTRAINT products_pkey PRIMARY KEY (id)
 );
 
 -- +migrate Down
+DROP TABLE products;

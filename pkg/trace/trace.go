@@ -1,3 +1,3 @@
 package trace
 
-const Key = "github.com/irvankadhafi/go-boilerplate/traceKey"
+const Key = "github.com/binus-thesis-team/product-service/traceKey"

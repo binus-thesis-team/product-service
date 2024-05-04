@@ -1,8 +1,8 @@
 package httpresponse
 
 import (
+	"github.com/binus-thesis-team/product-service/pkg/trace"
 	"github.com/gin-gonic/gin"
-	"github.com/irvankadhafi/go-boilerplate/pkg/trace"
 )
 
 func Write(ctx *gin.Context, code int, data interface{}, err error) {

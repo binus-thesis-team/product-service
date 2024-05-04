@@ -13,8 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	model "github.com/irvankadhafi/go-boilerplate/internal/model"
-	pagination "github.com/irvankadhafi/go-boilerplate/pkg/pagination"
+	model "github.com/binus-thesis-team/product-service/internal/model"
+	pagination "github.com/binus-thesis-team/product-service/pkg/pagination"
 	gomock "go.uber.org/mock/gomock"
 )
 

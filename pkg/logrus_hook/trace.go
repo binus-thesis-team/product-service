@@ -1,7 +1,7 @@
 package logrushook
 
 import (
-	"github.com/irvankadhafi/go-boilerplate/pkg/trace"
+	"github.com/binus-thesis-team/product-service/pkg/trace"
 	"github.com/sirupsen/logrus"
 )
 
