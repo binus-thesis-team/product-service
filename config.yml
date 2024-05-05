@@ -1,8 +1,8 @@
 env: "development"
 log_level: "debug"
 ports:
-  http: "3001"
-  grpc: "9001"
+  http: "3002"
+  grpc: "9002"
 postgres:
   host: "localhost:5433"
   database: "product-service"

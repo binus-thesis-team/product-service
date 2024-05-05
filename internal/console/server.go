@@ -12,14 +12,18 @@ import (
 	"github.com/binus-thesis-team/iam-service/auth"
 	iamServiceClient "github.com/binus-thesis-team/iam-service/client"
 	iam "github.com/binus-thesis-team/iam-service/pb/iam_service"
-	"github.com/binus-thesis-team/iam-service/utils/grpcutils"
+	iamGrpcUtils "github.com/binus-thesis-team/iam-service/utils/grpcutils"
+	productServiceClient "github.com/binus-thesis-team/product-service/client"
 	"github.com/binus-thesis-team/product-service/internal/config"
 	"github.com/binus-thesis-team/product-service/internal/db"
 	"github.com/binus-thesis-team/product-service/internal/delivery/httpsvc"
 	"github.com/binus-thesis-team/product-service/internal/helper"
 	"github.com/binus-thesis-team/product-service/internal/repository"
 	"github.com/binus-thesis-team/product-service/internal/usecase"
+	pb "github.com/binus-thesis-team/product-service/pb/product_service"
 	"github.com/binus-thesis-team/product-service/pkg/utils"
+	"github.com/binus-thesis-team/product-service/pkg/utils/grpcutils"
+	productGrpcUtils "github.com/binus-thesis-team/product-service/pkg/utils/grpcutils"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -49,6 +53,9 @@ func runServer(cmd *cobra.Command, args []string) {
 	defer helper.WrapCloser(pgDB.Close)
 
 	newIAMClient, err := getIAMServiceGRPCClient()
+	continueOrFatal(err)
+
+	newProductClient, err := getProductServiceGRPCClient()
 	continueOrFatal(err)
 
 	authenticationCacher := cacher.NewCacheManager()
@@ -90,7 +97,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	time.Local = location
 
 	productRepository := repository.NewProductRepository(db.PostgreSQL, generalCacher)
-	productUsecase := usecase.NewProductUsecase(productRepository)
+	productUsecase := usecase.NewProductUsecase(productRepository, newProductClient)
 	iamAuthAdapter := auth.NewIAMServiceAdapter(newIAMClient)
 	authMiddleware := auth.NewAuthenticationMiddleware(iamAuthAdapter, authenticationCacher)
 
@@ -160,14 +167,28 @@ func clientInterceptor() grpc.UnaryClientInterceptor {
 }
 
 func getIAMServiceGRPCClient() (iam.IAMServiceClient, error) {
-	grpcClient, err := iamServiceClient.NewGRPCClient("localhost:9000", newGRPCPoolSetting(),
+	grpcClient, err := iamServiceClient.NewGRPCClient("localhost:9000", newIAMGRPCPoolSetting(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(clientInterceptor()))
 
 	return grpcClient, err
 }
 
-func newGRPCPoolSetting() *grpcutils.GRPCConnectionPoolSetting {
-	return &grpcutils.GRPCConnectionPoolSetting{
+func getProductServiceGRPCClient() (pb.ProductServiceClient, error) {
+	grpcClient, err := productServiceClient.NewGRPCClient("localhost:9001", newProductGRPCPoolSetting(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(clientInterceptor()))
+
+	return grpcClient, err
+}
+
+func newIAMGRPCPoolSetting() *iamGrpcUtils.GRPCConnectionPoolSetting {
+	return &iamGrpcUtils.GRPCConnectionPoolSetting{
+		MaxIdle:   100,
+		MaxActive: 200,
+	}
+}
+
+func newProductGRPCPoolSetting() *productGrpcUtils.GRPCConnectionPoolSetting {
+	return &productGrpcUtils.GRPCConnectionPoolSetting{
 		MaxIdle:   100,
 		MaxActive: 200,
 	}

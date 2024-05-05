@@ -1,0 +1,22 @@
+syntax = "proto3";
+package pb.product_service;
+option go_package = "pb/product_service";
+
+import "pb/product_service/product.proto";
+
+
+message FindByProductIDsRequest {
+	repeated int64 ids = 1;
+}
+
+message FindByProductIDsResponse {
+	repeated Product product = 1;
+}
+
+message FindByProductIDRequest {
+	int64 id = 1;
+}
+
+message FindByProductIDResponse {
+	Product product = 1;
+}

@@ -37,8 +37,8 @@ type Product struct {
 	Stock       int64          `json:"stock,omitempty"`
 	Description string         `json:"description,omitempty"`
 	ImageUrl    string         `json:"image_url,omitempty"`
-	CreatedAt   time.Time      `json:"created_at,omitempty" gorm:"->;<-:create"`
-	UpdatedAt   time.Time      `json:"updated_at,omitempty"`
+	CreatedAt   *time.Time      `json:"created_at,omitempty" gorm:"->;<-:create"`
+	UpdatedAt   *time.Time      `json:"updated_at,omitempty"`
 	DeletedAt   gorm.DeletedAt `json:"deleted_at,omitempty"`
 }
 

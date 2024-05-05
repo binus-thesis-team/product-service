@@ -2,26 +2,26 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"sync"
 
 	"github.com/binus-thesis-team/iam-service/rbac"
 	"github.com/binus-thesis-team/iam-service/utils"
+	productClient "github.com/binus-thesis-team/product-service/client"
 	"github.com/binus-thesis-team/product-service/internal/model"
 	"github.com/sirupsen/logrus"
 )
 
 type productUsecase struct {
-	productRepository model.ProductRepository
-	//productServiceClient          productClient.ProductServiceClient
+	productRepository    model.ProductRepository
+	productServiceClient productClient.ProductServiceClient
 }
 
-func NewProductUsecase(productRepository model.ProductRepository) model.ProductUsecase {
+func NewProductUsecase(productRepository model.ProductRepository, productServiceClient productClient.ProductServiceClient) model.ProductUsecase {
 	return &productUsecase{
-		productRepository: productRepository,
-		//productServiceClient:          productServiceClient,
+		productRepository:    productRepository,
+		productServiceClient: productServiceClient,
 	}
 }
 
@@ -182,9 +182,6 @@ func (u *productUsecase) Search(ctx context.Context, user model.SessionUser, sea
 		return nil, 0, err
 	}
 
-	fmt.Println("ids", ids)
-	fmt.Println("count", count)
-
 	if len(ids) == 0 || count == 0 {
 		return nil, 0, nil
 	}
@@ -204,7 +201,6 @@ func (u *productUsecase) FindAllByIDs(ctx context.Context, ids []int64) (product
 		"ids": ids,
 	})
 
-	fmt.Println("masuk")
 	var wg sync.WaitGroup
 	c := make(chan *model.Product, len(ids))
 	for _, id := range ids {
@@ -239,8 +235,6 @@ func (u *productUsecase) FindAllByIDs(ctx context.Context, ids []int64) (product
 			products = append(products, user)
 		}
 	}
-
-	fmt.Println("products", products)
 
 	return
 }
