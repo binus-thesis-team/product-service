@@ -3,6 +3,7 @@ package console
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,6 +17,7 @@ import (
 	productServiceClient "github.com/binus-thesis-team/product-service/client"
 	"github.com/binus-thesis-team/product-service/internal/config"
 	"github.com/binus-thesis-team/product-service/internal/db"
+	"github.com/binus-thesis-team/product-service/internal/delivery/grpcsvc"
 	"github.com/binus-thesis-team/product-service/internal/delivery/httpsvc"
 	"github.com/binus-thesis-team/product-service/internal/helper"
 	"github.com/binus-thesis-team/product-service/internal/repository"
@@ -100,6 +102,12 @@ func runServer(cmd *cobra.Command, args []string) {
 	productUsecase := usecase.NewProductUsecase(productRepository, newProductClient)
 	iamAuthAdapter := auth.NewIAMServiceAdapter(newIAMClient)
 	authMiddleware := auth.NewAuthenticationMiddleware(iamAuthAdapter, authenticationCacher)
+	grpcAuthMD := auth.NewGRPCMiddleware(iamAuthAdapter, authenticationCacher)
+
+	grpcSvc := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		serverInterceptor,
+		grpcAuthMD.Authenticate(),
+	))
 
 	httpServer := echo.New()
 	httpServer.Pre(middleware.AddTrailingSlash())
@@ -119,11 +127,11 @@ func runServer(cmd *cobra.Command, args []string) {
 		for {
 			select {
 			case <-sigCh:
-				gracefulShutdown(nil, httpServer)
+				gracefulShutdown(grpcSvc, httpServer)
 				quitCh <- true
 			case e := <-errCh:
 				log.Error(e)
-				gracefulShutdown(nil, httpServer)
+				gracefulShutdown(grpcSvc, httpServer)
 				quitCh <- true
 			}
 		}
@@ -136,6 +144,25 @@ func runServer(cmd *cobra.Command, args []string) {
 		if err := httpServer.Start(fmt.Sprintf(":%s", config.HTTPPort())); err != nil && err != http.ErrServerClosed {
 			errCh <- err
 		}
+	}()
+
+	go func() {
+		// Service definition
+		svc := grpcsvc.NewService()
+		svc.RegisterProductUsecase(productUsecase)
+		svc.RegisterCacheManager(generalCacher)
+
+		pb.RegisterProductServiceServer(grpcSvc, svc)
+
+		// Start gRPC server
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%s", config.GRPCPort()))
+		if err != nil {
+			logrus.WithField("port", config.GRPCPort()).Fatalf("failed to listen: %v", err)
+		}
+
+		log.Info("Listening on ", config.GRPCPort())
+
+		errCh <- grpcSvc.Serve(lis)
 	}()
 
 	<-quitCh
@@ -198,4 +225,14 @@ func continueOrFatal(err error) {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+func serverInterceptor(ctx context.Context,
+	req interface{},
+	_ *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	ctx, cancel := context.WithTimeout(ctx, config.RPCServerTimeout())
+	defer cancel()
+	return handler(ctx, req)
 }

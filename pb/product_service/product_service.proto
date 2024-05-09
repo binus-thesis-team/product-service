@@ -2,9 +2,10 @@ syntax = "proto3";
 package pb.product_service;
 option go_package = "pb/product_service";
 
+import "pb/product_service/product.proto";
 import "pb/product_service/general.proto";
 
 service ProductService {
     rpc FindByProductIDs(FindByProductIDsRequest) returns (FindByProductIDsResponse);
-    rpc FindByProductID(FindByProductIDRequest) returns (FindByProductIDResponse);
+    rpc FindByProductID(FindByProductIDRequest) returns (Product);
 }

@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductServiceClient interface {
 	FindByProductIDs(ctx context.Context, in *FindByProductIDsRequest, opts ...grpc.CallOption) (*FindByProductIDsResponse, error)
-	FindByProductID(ctx context.Context, in *FindByProductIDRequest, opts ...grpc.CallOption) (*FindByProductIDResponse, error)
+	FindByProductID(ctx context.Context, in *FindByProductIDRequest, opts ...grpc.CallOption) (*Product, error)
 }
 
 type productServiceClient struct {
@@ -48,8 +48,8 @@ func (c *productServiceClient) FindByProductIDs(ctx context.Context, in *FindByP
 	return out, nil
 }
 
-func (c *productServiceClient) FindByProductID(ctx context.Context, in *FindByProductIDRequest, opts ...grpc.CallOption) (*FindByProductIDResponse, error) {
-	out := new(FindByProductIDResponse)
+func (c *productServiceClient) FindByProductID(ctx context.Context, in *FindByProductIDRequest, opts ...grpc.CallOption) (*Product, error) {
+	out := new(Product)
 	err := c.cc.Invoke(ctx, ProductService_FindByProductID_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (c *productServiceClient) FindByProductID(ctx context.Context, in *FindByPr
 // for forward compatibility
 type ProductServiceServer interface {
 	FindByProductIDs(context.Context, *FindByProductIDsRequest) (*FindByProductIDsResponse, error)
-	FindByProductID(context.Context, *FindByProductIDRequest) (*FindByProductIDResponse, error)
+	FindByProductID(context.Context, *FindByProductIDRequest) (*Product, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -73,7 +73,7 @@ type UnimplementedProductServiceServer struct {
 func (UnimplementedProductServiceServer) FindByProductIDs(context.Context, *FindByProductIDsRequest) (*FindByProductIDsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindByProductIDs not implemented")
 }
-func (UnimplementedProductServiceServer) FindByProductID(context.Context, *FindByProductIDRequest) (*FindByProductIDResponse, error) {
+func (UnimplementedProductServiceServer) FindByProductID(context.Context, *FindByProductIDRequest) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindByProductID not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}

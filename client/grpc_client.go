@@ -42,7 +42,7 @@ func (c *grpcClient) FindByProductIDs(ctx context.Context, in *pb.FindByProductI
 	return
 }
 
-func (c *grpcClient) FindByProductID(ctx context.Context, in *pb.FindByProductIDRequest, opts ...grpc.CallOption) (out *pb.FindByProductIDResponse, err error) {
+func (c *grpcClient) FindByProductID(ctx context.Context, in *pb.FindByProductIDRequest, opts ...grpc.CallOption) (out *pb.Product, err error) {
 	conn, err := c.Conn.Get(ctx)
 	if err != nil {
 		return nil, err

@@ -2,6 +2,8 @@ syntax = "proto3";
 package pb.product_service;
 option go_package = "pb/product_service";
 
+import "google/protobuf/timestamp.proto";
+
 message Product {
 	int64 id = 1;
 	string name = 2;
@@ -9,7 +11,7 @@ message Product {
 	int64 stock = 4;
 	string description = 5;
 	string image_url = 6;
-	string created_at = 7;
-	string updated_at = 8;
-	string deleted_at = 9;
+	google.protobuf.Timestamp created_at = 7;
+	google.protobuf.Timestamp updated_at = 8;
+	google.protobuf.Timestamp deleted_at = 9;
 }

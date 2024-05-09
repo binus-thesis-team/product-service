@@ -207,3 +207,9 @@ func parseDuration(in string, defaultDuration time.Duration) time.Duration {
 	}
 	return dur
 }
+
+// RPCServerTimeout :nodoc:
+func RPCServerTimeout() time.Duration {
+	cfg := viper.GetString("rpc_server_timeout")
+	return parseDuration(cfg, DefaultRPCServerTimeout)
+}

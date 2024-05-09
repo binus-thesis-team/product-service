@@ -13,7 +13,7 @@ import (
 // ProductServiceClient defines the interface for interacting with the Product service.
 type ProductServiceClient interface {
 	FindByProductIDs(ctx context.Context, req *pb.FindByProductIDsRequest, co ...grpc.CallOption) (*pb.FindByProductIDsResponse, error)
-	FindByProductID(ctx context.Context, req *pb.FindByProductIDRequest, co ...grpc.CallOption) (*pb.FindByProductIDResponse, error)
+	FindByProductID(ctx context.Context, req *pb.FindByProductIDRequest, co ...grpc.CallOption) (*pb.Product, error)
 }
 
 // convertErrorGRPCToErrorGeneral mapping error from GRPC Error to general Error

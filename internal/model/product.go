@@ -6,6 +6,9 @@ import (
 	"mime/multipart"
 	"time"
 
+	pb "github.com/binus-thesis-team/product-service/pb/product_service"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"gorm.io/gorm"
 )
 
@@ -37,9 +40,32 @@ type Product struct {
 	Stock       int64          `json:"stock,omitempty"`
 	Description string         `json:"description,omitempty"`
 	ImageUrl    string         `json:"image_url,omitempty"`
-	CreatedAt   *time.Time      `json:"created_at,omitempty" gorm:"->;<-:create"`
-	UpdatedAt   *time.Time      `json:"updated_at,omitempty"`
+	CreatedAt   *time.Time     `json:"created_at,omitempty" gorm:"->;<-:create"`
+	UpdatedAt   *time.Time     `json:"updated_at,omitempty"`
 	DeletedAt   gorm.DeletedAt `json:"deleted_at,omitempty"`
+}
+
+func (p *Product) ToProto() *pb.Product {
+	product := &pb.Product{
+		Id:          p.ID,
+		Name:        p.Name,
+		Price:       p.Price,
+		Stock:       p.Stock,
+		Description: p.Description,
+		ImageUrl:    p.ImageUrl,
+	}
+
+	if product.CreatedAt.IsValid() {
+		product.CreatedAt = timestamppb.New(*p.CreatedAt)
+	}
+	if product.UpdatedAt.IsValid() {
+		product.UpdatedAt = timestamppb.New(*p.CreatedAt)
+	}
+	if product.DeletedAt.IsValid() {
+		product.DeletedAt = timestamppb.New(p.DeletedAt.Time)
+	}
+
+	return product
 }
 
 type CreateProductRequest struct {

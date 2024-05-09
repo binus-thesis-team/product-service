@@ -10,7 +10,8 @@ message FindByProductIDsRequest {
 }
 
 message FindByProductIDsResponse {
-	repeated Product product = 1;
+	repeated Product products = 1;
+	int64 count = 2;
 }
 
 message FindByProductIDRequest {
