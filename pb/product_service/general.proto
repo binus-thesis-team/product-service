@@ -2,22 +2,64 @@ syntax = "proto3";
 package pb.product_service;
 option go_package = "pb/product_service";
 
-import "pb/product_service/product.proto";
+
+// =============================================
+// GENERIC MESSAGES
+// =============================================
 
 
-message FindByProductIDsRequest {
-	repeated int64 ids = 1;
-}
+// Empty used when an RPC doesn't need to return any message
+message Empty {}
 
-message FindByProductIDsResponse {
-	repeated Product products = 1;
-	int64 count = 2;
-}
-
-message FindByProductIDRequest {
+// FindByIDRequest :nodoc:
+message FindByIDRequest {
 	int64 id = 1;
 }
 
-message FindByProductIDResponse {
-	Product product = 1;
+
+// FindByIDsRequest :nodoc:
+message FindByIDsRequest {
+	repeated int64 ids = 1;
+}
+
+
+// FindMultiRequest :nodoc:
+message FindMultiRequest {
+	/*
+      USAGE
+      1. by pagination: should have page and size. Example: ?page=2&size=10.
+      2. before-date: should only have before and size. Example: ?before=2017-09-10HH:mm:ssZ&size=25
+      3. after-date: should only have after and size. Example: ?after=2017-09-10HH:mm:ssZ&size=25
+
+      Using 1, page will be set to 1 if page is not given
+      Using 2 or 3, page will be omitted.
+   */
+	int64 page = 1;
+	int64 size = 2; // required
+	string before = 3;
+	string after = 4;
+}
+
+// SearchResponse :nodoc:
+message SearchResponse {
+	int64 count = 1;
+	repeated int64 ids = 2;
+}
+
+
+// BooleanResponse :nodoc:
+message BooleanResponse {
+	bool value = 1;
+}
+
+// DeleteByIDRequest can be used to many kind of objects
+message DeleteByIDRequest {
+	int64 user_id = 1;
+	int64 object_id = 2;
+}
+
+// MutateByIDRequest can be used to many kind of objects
+message MutateByIDRequest {
+	int64 user_id = 1;
+	int64 object_id = 2;
 }

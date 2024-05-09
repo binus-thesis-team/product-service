@@ -67,7 +67,7 @@ func (u *productRepository) FindByID(ctx context.Context, id int64) (*model.Prod
 	}
 
 	product := &model.Product{}
-	err := u.db.WithContext(ctx).Take(product, "id = ?", id).Error
+	err := u.db.WithContext(ctx).Unscoped().Take(product, "id = ?", id).Error
 	switch err {
 	case nil:
 	case gorm.ErrRecordNotFound:
@@ -84,38 +84,6 @@ func (u *productRepository) FindByID(ctx context.Context, id int64) (*model.Prod
 	}
 
 	return product, nil
-}
-
-func (u *productRepository) FindByProductIDs(ctx context.Context, productIDs []int64) ([]*model.Product, error) {
-	logger := logrus.WithFields(logrus.Fields{
-		"ctx": utils.DumpIncomingContext(ctx),
-	})
-
-	var products []*model.Product
-
-	// TODO: Implement caching ?
-	// cacheKey := u.newCacheKeyByProductID(productIDs)
-	// if !config.DisableCaching() {
-	// 	_, mu, err := findFromCacheByKey[int64](u.cacheManager, cacheKey)
-	// 	defer cacher.SafeUnlock(mu)
-	// 	if err != nil {
-	// 		logger.Error(err)
-	// 		return nil, err
-	// 	}
-	// }
-
-	var scopes []func(*gorm.DB) *gorm.DB
-	scopes = append(scopes, u.scopeByProductIDs(productIDs))
-
-	err := u.db.Model(model.Product{}).
-				Scopes(scopes...).
-				Find(&products).Error
-	if err != nil {
-		logger.Error(err)
-		return nil, err
-	}
-
-	return products, nil
 }
 
 func (u *productRepository) UpdateByID(ctx context.Context, requesterID int64, product *model.Product) error {
@@ -162,12 +130,6 @@ func (u *productRepository) SearchByPage(ctx context.Context, searchCriteria mod
 		"searchCriteria": utils.Dump(searchCriteria),
 	})
 
-	var scopes []func(*gorm.DB) *gorm.DB
-
-	if len(searchCriteria.ProductIDs) > 0 {
-		scopes = append(scopes, u.scopeByProductIDs(searchCriteria.ProductIDs))
-	}
-
 	count, err = u.countAll(ctx, searchCriteria)
 	if err != nil {
 		logger.Error(err)
@@ -194,8 +156,8 @@ func (u *productRepository) findAllIDsByCriteria(ctx context.Context, criteria m
 	var scopes []func(*gorm.DB) *gorm.DB
 	scopes = append(scopes, scopeByPageAndLimit(criteria.Page, criteria.Size))
 
-	if len(criteria.ProductIDs) > 0 {
-		scopes = append(scopes, u.scopeByProductIDs(criteria.ProductIDs))
+	if criteria.Query != "" {
+		scopes = append(scopes, u.scopeByProductNameAndDescription(criteria.Query))
 	}
 
 	var ids []int64
@@ -216,17 +178,11 @@ func (u *productRepository) findAllIDsByCriteria(ctx context.Context, criteria m
 	return ids, nil
 }
 
-func (u *productRepository) scopeByProductIDs(productIDs []int64) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("product_id IN (?)", productIDs)
-	}
-}
-
 func (u *productRepository) countAll(ctx context.Context, criteria model.ProductSearchCriteria) (int64, error) {
 	var scopes []func(*gorm.DB) *gorm.DB
 
-	if len(criteria.ProductIDs) > 0 {
-		scopes = append(scopes, u.scopeByProductIDs(criteria.ProductIDs))
+	if criteria.Query != "" {
+		scopes = append(scopes, u.scopeByProductNameAndDescription(criteria.Query))
 	}
 
 	var count int64
@@ -245,8 +201,16 @@ func (u *productRepository) countAll(ctx context.Context, criteria model.Product
 	return count, nil
 }
 
-func (u *productRepository) newCacheKeyByProductID(productID int64) string {
-	return fmt.Sprintf("cache:id:product:%d", productID)
+func (u *productRepository) scopeByProductName(query string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("name ILIKE ?", "%"+query+"%")
+	}
+}
+
+func (u *productRepository) scopeByProductNameAndDescription(query string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("name ILIKE ? OR description ILIKE ?", "%"+query+"%", "%"+query+"%")
+	}
 }
 
 func (u *productRepository) newCacheKeyByID(id int64) string {

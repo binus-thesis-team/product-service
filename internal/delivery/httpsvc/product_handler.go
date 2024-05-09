@@ -111,7 +111,7 @@ func (s *service) GetList() echo.HandlerFunc {
 		dir := c.QueryParam("dir")
 		sort := c.QueryParam("sort")
 
-		products, count, err := s.productUsecase.Search(ctx, model.GetUserFromCtx(ctx), model.ProductSearchCriteria{
+		products, count, err := s.productUsecase.SearchByCriteria(ctx, model.GetUserFromCtx(ctx), model.ProductSearchCriteria{
 			Query:   query,
 			Page:    int64(page),
 			Size:    int64(limit),

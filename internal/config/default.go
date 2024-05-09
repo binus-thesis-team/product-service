@@ -27,4 +27,6 @@ const (
 	DefaultLoginRetryAttempts = 3
 	DefaultCacheTTL           = 15 * time.Minute
 	DefaultLoginLockTTL       = 5 * time.Minute
+
+	DefaultMaxSizePerRequest = 25
 )

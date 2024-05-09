@@ -19,16 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ProductService_FindByProductIDs_FullMethodName = "/pb.product_service.ProductService/FindByProductIDs"
-	ProductService_FindByProductID_FullMethodName  = "/pb.product_service.ProductService/FindByProductID"
+	ProductService_FindAllProductsByIDs_FullMethodName = "/pb.product_service.ProductService/FindAllProductsByIDs"
+	ProductService_FindByProductID_FullMethodName      = "/pb.product_service.ProductService/FindByProductID"
+	ProductService_SearchAllProducts_FullMethodName    = "/pb.product_service.ProductService/SearchAllProducts"
 )
 
 // ProductServiceClient is the client API for ProductService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProductServiceClient interface {
-	FindByProductIDs(ctx context.Context, in *FindByProductIDsRequest, opts ...grpc.CallOption) (*FindByProductIDsResponse, error)
-	FindByProductID(ctx context.Context, in *FindByProductIDRequest, opts ...grpc.CallOption) (*Product, error)
+	FindAllProductsByIDs(ctx context.Context, in *FindByIDsRequest, opts ...grpc.CallOption) (*Products, error)
+	FindByProductID(ctx context.Context, in *FindByIDRequest, opts ...grpc.CallOption) (*Product, error)
+	SearchAllProducts(ctx context.Context, in *ProductSearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
 }
 
 type productServiceClient struct {
@@ -39,18 +41,27 @@ func NewProductServiceClient(cc grpc.ClientConnInterface) ProductServiceClient {
 	return &productServiceClient{cc}
 }
 
-func (c *productServiceClient) FindByProductIDs(ctx context.Context, in *FindByProductIDsRequest, opts ...grpc.CallOption) (*FindByProductIDsResponse, error) {
-	out := new(FindByProductIDsResponse)
-	err := c.cc.Invoke(ctx, ProductService_FindByProductIDs_FullMethodName, in, out, opts...)
+func (c *productServiceClient) FindAllProductsByIDs(ctx context.Context, in *FindByIDsRequest, opts ...grpc.CallOption) (*Products, error) {
+	out := new(Products)
+	err := c.cc.Invoke(ctx, ProductService_FindAllProductsByIDs_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *productServiceClient) FindByProductID(ctx context.Context, in *FindByProductIDRequest, opts ...grpc.CallOption) (*Product, error) {
+func (c *productServiceClient) FindByProductID(ctx context.Context, in *FindByIDRequest, opts ...grpc.CallOption) (*Product, error) {
 	out := new(Product)
 	err := c.cc.Invoke(ctx, ProductService_FindByProductID_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) SearchAllProducts(ctx context.Context, in *ProductSearchRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
+	out := new(SearchResponse)
+	err := c.cc.Invoke(ctx, ProductService_SearchAllProducts_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -61,8 +72,9 @@ func (c *productServiceClient) FindByProductID(ctx context.Context, in *FindByPr
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility
 type ProductServiceServer interface {
-	FindByProductIDs(context.Context, *FindByProductIDsRequest) (*FindByProductIDsResponse, error)
-	FindByProductID(context.Context, *FindByProductIDRequest) (*Product, error)
+	FindAllProductsByIDs(context.Context, *FindByIDsRequest) (*Products, error)
+	FindByProductID(context.Context, *FindByIDRequest) (*Product, error)
+	SearchAllProducts(context.Context, *ProductSearchRequest) (*SearchResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -70,11 +82,14 @@ type ProductServiceServer interface {
 type UnimplementedProductServiceServer struct {
 }
 
-func (UnimplementedProductServiceServer) FindByProductIDs(context.Context, *FindByProductIDsRequest) (*FindByProductIDsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindByProductIDs not implemented")
+func (UnimplementedProductServiceServer) FindAllProductsByIDs(context.Context, *FindByIDsRequest) (*Products, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindAllProductsByIDs not implemented")
 }
-func (UnimplementedProductServiceServer) FindByProductID(context.Context, *FindByProductIDRequest) (*Product, error) {
+func (UnimplementedProductServiceServer) FindByProductID(context.Context, *FindByIDRequest) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindByProductID not implemented")
+}
+func (UnimplementedProductServiceServer) SearchAllProducts(context.Context, *ProductSearchRequest) (*SearchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchAllProducts not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 
@@ -89,26 +104,26 @@ func RegisterProductServiceServer(s grpc.ServiceRegistrar, srv ProductServiceSer
 	s.RegisterService(&ProductService_ServiceDesc, srv)
 }
 
-func _ProductService_FindByProductIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FindByProductIDsRequest)
+func _ProductService_FindAllProductsByIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindByIDsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProductServiceServer).FindByProductIDs(ctx, in)
+		return srv.(ProductServiceServer).FindAllProductsByIDs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProductService_FindByProductIDs_FullMethodName,
+		FullMethod: ProductService_FindAllProductsByIDs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).FindByProductIDs(ctx, req.(*FindByProductIDsRequest))
+		return srv.(ProductServiceServer).FindAllProductsByIDs(ctx, req.(*FindByIDsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ProductService_FindByProductID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(FindByProductIDRequest)
+	in := new(FindByIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -120,7 +135,25 @@ func _ProductService_FindByProductID_Handler(srv interface{}, ctx context.Contex
 		FullMethod: ProductService_FindByProductID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).FindByProductID(ctx, req.(*FindByProductIDRequest))
+		return srv.(ProductServiceServer).FindByProductID(ctx, req.(*FindByIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_SearchAllProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProductSearchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).SearchAllProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_SearchAllProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).SearchAllProducts(ctx, req.(*ProductSearchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -133,12 +166,16 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ProductServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "FindByProductIDs",
-			Handler:    _ProductService_FindByProductIDs_Handler,
+			MethodName: "FindAllProductsByIDs",
+			Handler:    _ProductService_FindAllProductsByIDs_Handler,
 		},
 		{
 			MethodName: "FindByProductID",
 			Handler:    _ProductService_FindByProductID_Handler,
+		},
+		{
+			MethodName: "SearchAllProducts",
+			Handler:    _ProductService_SearchAllProducts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

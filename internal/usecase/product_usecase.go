@@ -77,11 +77,7 @@ func (u *productUsecase) FindByID(ctx context.Context, id int64) (product *model
 }
 
 func (u *productUsecase) FindByProductIDs(ctx context.Context, productIDs []int64) (products []*model.Product, err error) {
-	products, err = u.productRepository.FindByProductIDs(ctx, productIDs)
-	if err != nil {
-		logrus.WithField("productID", productIDs).Error(err)
-		return nil, err
-	}
+	products = u.FindAllByIDs(ctx, productIDs)
 
 	if products == nil {
 		return nil, ErrNotFound
@@ -158,7 +154,27 @@ func (u *productUsecase) DeleteByProductID(ctx context.Context, user model.Sessi
 	return nil
 }
 
-func (u *productUsecase) Search(ctx context.Context, user model.SessionUser, searchCriteria model.ProductSearchCriteria) (products []*model.Product, count int64, err error) {
+func (u *productUsecase) SearchByPage(ctx context.Context, searchCriteria model.ProductSearchCriteria) (ids []int64, count int64, err error) {
+	logger := logrus.WithFields(logrus.Fields{
+		"ctx":            utils.DumpIncomingContext(ctx),
+		"searchCriteria": utils.Dump(searchCriteria),
+	})
+
+	searchCriteria.SetDefaultValue()
+	ids, count, err = u.productRepository.SearchByPage(ctx, searchCriteria)
+	if err != nil {
+		logger.Error(err)
+		return nil, 0, err
+	}
+
+	if len(ids) == 0 || count == 0 {
+		return nil, 0, nil
+	}
+
+	return ids, count, nil
+}
+
+func (u *productUsecase) SearchByCriteria(ctx context.Context, user model.SessionUser, searchCriteria model.ProductSearchCriteria) (products []*model.Product, count int64, err error) {
 	if !user.HasAccess(rbac.ResourceProduct, rbac.ActionViewAny) {
 		err = ErrPermissionDenied
 		return
@@ -170,20 +186,10 @@ func (u *productUsecase) Search(ctx context.Context, user model.SessionUser, sea
 		"searchCriteria": utils.Dump(searchCriteria),
 	})
 
-	// TODO: filtering searchCriteria.Query to Product Service with GRPC/REST
-	// get the productIDs to filtering on products
-
-	// example
-	// productIDs := []int64{1, 2, 3}
-
-	// searchCriteria.ProductIDs = productIDs
-	ids, count, err := u.productRepository.SearchByPage(ctx, searchCriteria)
+	ids, count, err := u.SearchByPage(ctx, searchCriteria)
 	if err != nil {
-		return nil, 0, err
-	}
-
-	if len(ids) == 0 || count == 0 {
-		return nil, 0, nil
+		logger.Error(err)
+		return
 	}
 
 	products = u.FindAllByIDs(ctx, ids)
@@ -239,7 +245,7 @@ func (u *productUsecase) FindAllByIDs(ctx context.Context, ids []int64) (product
 	return
 }
 
-func (ps *productUsecase) UploadImage(ctx context.Context, user model.SessionUser, input model.UploadImageProductRequest) error {
+func (u *productUsecase) UploadImage(ctx context.Context, user model.SessionUser, input model.UploadImageProductRequest) error {
 	if !user.HasAccess(rbac.ResourceUser, rbac.ActionCreateAny) {
 		return ErrPermissionDenied
 	}
@@ -278,7 +284,7 @@ func (ps *productUsecase) UploadImage(ctx context.Context, user model.SessionUse
 	return nil
 }
 
-func (ps *productUsecase) RemoveImage(ctx context.Context, user model.SessionUser, input model.RemoveImageProductRequest) error {
+func (u *productUsecase) RemoveImage(ctx context.Context, user model.SessionUser, input model.RemoveImageProductRequest) error {
 	if !user.HasAccess(rbac.ResourceUser, rbac.ActionCreateAny) {
 		return ErrPermissionDenied
 	}

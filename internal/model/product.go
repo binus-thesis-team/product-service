@@ -18,7 +18,8 @@ type ProductUsecase interface {
 	FindByProductIDs(ctx context.Context, productIDs []int64) (product []*Product, err error)
 	Update(ctx context.Context, user SessionUser, input UpdateProductRequest) (product *Product, err error)
 	DeleteByProductID(ctx context.Context, user SessionUser, productID int64) (err error)
-	Search(ctx context.Context, user SessionUser, searchCriteria ProductSearchCriteria) (products []*Product, count int64, err error)
+	SearchByPage(ctx context.Context, searchCriteria ProductSearchCriteria) (ids []int64, count int64, err error)
+	SearchByCriteria(ctx context.Context, user SessionUser, searchCriteria ProductSearchCriteria) (products []*Product, count int64, err error)
 	FindAllByIDs(ctx context.Context, ids []int64) (products []*Product)
 	UploadImage(ctx context.Context, user SessionUser, input UploadImageProductRequest) error
 	RemoveImage(ctx context.Context, user SessionUser, input RemoveImageProductRequest) error
@@ -27,7 +28,6 @@ type ProductUsecase interface {
 type ProductRepository interface {
 	Create(ctx context.Context, requesterID int64, product *Product) error
 	FindByID(ctx context.Context, id int64) (*Product, error)
-	FindByProductIDs(ctx context.Context, productIDs []int64) ([]*Product, error)
 	UpdateByID(ctx context.Context, requesterID int64, product *Product) (err error)
 	DeleteByID(ctx context.Context, id int64) error
 	SearchByPage(ctx context.Context, searchCriteria ProductSearchCriteria) (ids []int64, count int64, err error)
@@ -147,15 +147,27 @@ func (c *UpdateProductRequest) ValidateDTOUpdateProductRequest() error {
 
 // ProductSearchCriteria :nodoc:
 type ProductSearchCriteria struct {
-	Query    string `json:"query"`
-	Page     int64  `json:"page"`
-	Size     int64  `json:"size"`
-	SortBy   string `json:"sort_by"`
-	SortDir  string `json:"sort_dir"`
-	FromDate string `json:"from_date"`
-	ToDate   string `json:"to_date"`
+	Query   string `json:"query"`
+	Page    int64  `json:"page"`
+	Size    int64  `json:"size"`
+	SortBy  string `json:"sort_by"`
+	SortDir string `json:"sort_dir"`
+}
 
-	ProductIDs []int64 `json:"-"`
+// SetDefaultValue will set default value for page and size if zero
+func (c *ProductSearchCriteria) SetDefaultValue() {
+	if c.Page == 0 {
+		c.Page = 1
+	}
+	if c.Size == 0 {
+		c.Size = 10
+	}
+	if c.SortBy == "" {
+		c.SortBy = "created_at"
+	}
+	if c.SortDir == "" {
+		c.SortDir = "desc"
+	}
 }
 
 type UploadImageProductRequest struct {

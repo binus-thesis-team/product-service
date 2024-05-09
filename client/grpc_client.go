@@ -29,7 +29,7 @@ func (c *grpcClient) SetCallOption(opts ...grpc.CallOption) {
 	c.Opts = opts
 }
 
-func (c *grpcClient) FindByProductIDs(ctx context.Context, in *pb.FindByProductIDsRequest, opts ...grpc.CallOption) (out *pb.FindByProductIDsResponse, err error) {
+func (c *grpcClient) FindAllProductsByIDs(ctx context.Context, in *pb.FindByIDsRequest, opts ...grpc.CallOption) (out *pb.Products, err error) {
 	conn, err := c.Conn.Get(ctx)
 	if err != nil {
 		return nil, err
@@ -38,11 +38,11 @@ func (c *grpcClient) FindByProductIDs(ctx context.Context, in *pb.FindByProductI
 		_ = conn.Close()
 	}()
 	cli := pb.NewProductServiceClient(conn.ClientConn)
-	out, err = cli.FindByProductIDs(ctx, in, opts...)
+	out, err = cli.FindAllProductsByIDs(ctx, in, opts...)
 	return
 }
 
-func (c *grpcClient) FindByProductID(ctx context.Context, in *pb.FindByProductIDRequest, opts ...grpc.CallOption) (out *pb.Product, err error) {
+func (c *grpcClient) FindByProductID(ctx context.Context, in *pb.FindByIDRequest, opts ...grpc.CallOption) (out *pb.Product, err error) {
 	conn, err := c.Conn.Get(ctx)
 	if err != nil {
 		return nil, err
@@ -52,5 +52,18 @@ func (c *grpcClient) FindByProductID(ctx context.Context, in *pb.FindByProductID
 	}()
 	cli := pb.NewProductServiceClient(conn.ClientConn)
 	out, err = cli.FindByProductID(ctx, in, opts...)
+	return
+}
+
+func (c *grpcClient) SearchAllProducts(ctx context.Context, in *pb.ProductSearchRequest, opts ...grpc.CallOption) (out *pb.SearchResponse, err error) {
+	conn, err := c.Conn.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = conn.Close()
+	}()
+	cli := pb.NewProductServiceClient(conn.ClientConn)
+	out, err = cli.SearchAllProducts(ctx, in, opts...)
 	return
 }

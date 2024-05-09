@@ -213,3 +213,11 @@ func RPCServerTimeout() time.Duration {
 	cfg := viper.GetString("rpc_server_timeout")
 	return parseDuration(cfg, DefaultRPCServerTimeout)
 }
+
+// MaxSizePerRequest :nodoc:
+func MaxSizePerRequest() int64 {
+	if !viper.IsSet("max_size_per_request") {
+		return DefaultMaxSizePerRequest
+	}
+	return viper.GetInt64("max_size_per_request")
+}

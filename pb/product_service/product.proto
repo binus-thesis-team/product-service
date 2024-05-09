@@ -15,3 +15,27 @@ message Product {
 	google.protobuf.Timestamp updated_at = 8;
 	google.protobuf.Timestamp deleted_at = 9;
 }
+
+message Products {
+	repeated Product products = 1;
+}
+
+// ProductSearchRequest :nodoc:
+message ProductSearchRequest {
+	int64 size = 1;
+	int64 page = 2;
+	string query = 3;
+	ProductFilter filter = 4;
+	ProductSortType sort_type = 5;
+}
+
+message ProductFilter {
+	bool is_deleted = 1;
+}
+
+enum ProductSortType {
+	NAME_DESC = 0;
+	NAME_ASC = 1;
+	CREATED_AT_DESC = 2;
+	CREATED_AT_ASC = 3;
+}

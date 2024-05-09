@@ -2,8 +2,7 @@ package grpcsvc
 
 import (
 	"context"
-	"sync"
-
+	"github.com/binus-thesis-team/product-service/internal/config"
 	"github.com/binus-thesis-team/product-service/internal/model"
 	"github.com/binus-thesis-team/product-service/internal/usecase"
 	pb "github.com/binus-thesis-team/product-service/pb/product_service"
@@ -11,26 +10,21 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"strings"
 )
 
-// FindByProductIds :nodoc:
-func (s *Service) FindByProductIDs(ctx context.Context, in *pb.FindByProductIDsRequest) (out *pb.FindByProductIDsResponse, err error) {
+// FindAllProductsByIDs :nodoc:
+func (s *Service) FindAllProductsByIDs(ctx context.Context, in *pb.FindByIDsRequest) (out *pb.Products, err error) {
 	products, err := s.productUsecase.FindByProductIDs(ctx, in.GetIds())
 	switch err {
 	case nil:
+		protoProducts := pb.Products{}
 
-		out.Products = make([]*pb.Product, 0, len(products))
-		var wg sync.WaitGroup
-		for index, v := range products {
-			wg.Add(1)
-			go func(idx int, product *model.Product) {
-				defer wg.Done()
-				out.Products[idx] = product.ToProto()
-			}(index, v)
+		for _, item := range products {
+			protoProducts.Products = append(protoProducts.Products, item.ToProto())
 		}
-		wg.Wait()
 
-		return out, nil
+		return &protoProducts, nil
 	case usecase.ErrNotFound:
 		return nil, status.Error(codes.NotFound, "not found")
 	default:
@@ -43,7 +37,7 @@ func (s *Service) FindByProductIDs(ctx context.Context, in *pb.FindByProductIDsR
 }
 
 // FindByProductId :nodoc:
-func (s *Service) FindByProductID(ctx context.Context, in *pb.FindByProductIDRequest) (out *pb.Product, err error) {
+func (s *Service) FindByProductID(ctx context.Context, in *pb.FindByIDRequest) (out *pb.Product, err error) {
 	product, err := s.productUsecase.FindByID(ctx, in.GetId())
 	switch err {
 	case nil:
@@ -59,4 +53,23 @@ func (s *Service) FindByProductID(ctx context.Context, in *pb.FindByProductIDReq
 		}).Error(err)
 		return nil, status.Error(codes.Internal, "something wrong")
 	}
+}
+
+func (s *Service) SearchAllProducts(ctx context.Context, req *pb.ProductSearchRequest) (out *pb.SearchResponse, err error) {
+	size := utils.Int64WithLimit(req.GetSize(), config.MaxSizePerRequest())
+	param := model.ProductSearchCriteria{
+		Query: strings.ToLower(req.GetQuery()),
+		Page:  req.GetPage(),
+		Size:  size,
+	}
+
+	ids, count, err := s.productUsecase.SearchByPage(ctx, param)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.SearchResponse{
+		Ids:   ids,
+		Count: count,
+	}, nil
 }

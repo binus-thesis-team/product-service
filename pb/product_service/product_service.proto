@@ -6,6 +6,7 @@ import "pb/product_service/product.proto";
 import "pb/product_service/general.proto";
 
 service ProductService {
-    rpc FindByProductIDs(FindByProductIDsRequest) returns (FindByProductIDsResponse);
-    rpc FindByProductID(FindByProductIDRequest) returns (Product);
+    rpc FindAllProductsByIDs(FindByIDsRequest) returns (Products);
+    rpc FindByProductID(FindByIDRequest) returns (Product);
+    rpc SearchAllProducts(ProductSearchRequest) returns (SearchResponse) {}
 }
