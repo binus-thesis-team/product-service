@@ -23,6 +23,8 @@ type ProductUsecase interface {
 	FindAllByIDs(ctx context.Context, ids []int64) (products []*Product)
 	UploadImage(ctx context.Context, user SessionUser, input UploadImageProductRequest) error
 	RemoveImage(ctx context.Context, user SessionUser, input RemoveImageProductRequest) error
+	UploadFile(ctx context.Context, user SessionUser, input UploadFileProductRequest) error
+	UploadFileWithoutSession(ctx context.Context, input UploadFileProductRequest) error
 }
 
 type ProductRepository interface {
@@ -195,4 +197,8 @@ type RemoveImageProductRequest struct {
 
 func (r *RemoveImageProductRequest) Validate() error {
 	return validate.Struct(r)
+}
+
+type UploadFileProductRequest struct {
+	ProductFile []byte `form:"product_file" binding:"required"`
 }

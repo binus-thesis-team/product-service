@@ -1,9 +1,12 @@
 package usecase
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"io"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/binus-thesis-team/iam-service/rbac"
@@ -310,6 +313,137 @@ func (u *productUsecase) RemoveImage(ctx context.Context, user model.SessionUser
 		logger.Error(err)
 		return err
 	}
+
+	return nil
+}
+
+func (u *productUsecase) UploadFile(ctx context.Context, user model.SessionUser, input model.UploadFileProductRequest) error {
+	if !user.HasAccess(rbac.ResourceWishlist, rbac.ActionCreateAny) {
+		return ErrPermissionDenied
+	}
+
+	logger := logrus.WithFields(logrus.Fields{
+		"ctx":         utils.DumpIncomingContext(ctx),
+		"currentUser": utils.Dump(user),
+	})
+
+	reader := bytes.NewReader(input.ProductFile)
+	csvReader := csv.NewReader(reader)
+	csvReader.Comma = ','
+	rows, err := csvReader.ReadAll()
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	semaphore := make(chan struct{}, 10)
+
+	var wg sync.WaitGroup
+	for i, row := range rows {
+		wg.Add(1)
+
+		// Acquire semaphore
+		semaphore <- struct{}{}
+
+		go func(idx int, v []string) {
+			defer wg.Done()
+			defer func() { <-semaphore }() // Release semaphore
+
+			if idx == 0 {
+				return
+			}
+
+			price, err := strconv.ParseFloat(v[1], 64)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+			stock, err := strconv.ParseInt(v[2], 10, 64)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+
+			product := &model.Product{
+				Name:        v[0],
+				Price:       price,
+				Stock:       stock,
+				Description: v[3],
+				ImageUrl:    v[4],
+			}
+
+			if err = u.productRepository.Create(ctx, user.GetUserID(), product); err != nil {
+				logger.Error(err)
+				return
+			}
+		}(i, row)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+
+	return nil
+}
+
+func (u *productUsecase) UploadFileWithoutSession(ctx context.Context, input model.UploadFileProductRequest) error {
+	logger := logrus.WithFields(logrus.Fields{
+		"ctx": utils.DumpIncomingContext(ctx),
+	})
+
+	reader := bytes.NewReader(input.ProductFile)
+	csvReader := csv.NewReader(reader)
+	csvReader.Comma = ','
+	rows, err := csvReader.ReadAll()
+	if err != nil {
+		logger.Error(err)
+		return err
+	}
+
+	semaphore := make(chan struct{}, 10)
+
+	var wg sync.WaitGroup
+	for i, row := range rows {
+		wg.Add(1)
+
+		// Acquire semaphore
+		semaphore <- struct{}{}
+
+		go func(idx int, v []string) {
+			defer wg.Done()
+			defer func() { <-semaphore }() // Release semaphore
+
+			if idx == 0 {
+				return
+			}
+
+			price, err := strconv.ParseFloat(v[1], 64)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+			stock, err := strconv.ParseInt(v[2], 10, 64)
+			if err != nil {
+				logger.Error(err)
+				return
+			}
+
+			product := &model.Product{
+				Name:        v[0],
+				Price:       price,
+				Stock:       stock,
+				Description: v[3],
+				ImageUrl:    v[4],
+			}
+
+			if err = u.productRepository.Create(context.Background(), 1, product); err != nil {
+				logger.Error(err)
+				return
+			}
+		}(i, row)
+	}
+
+	// Wait for all goroutines to finish
+	wg.Wait()
 
 	return nil
 }

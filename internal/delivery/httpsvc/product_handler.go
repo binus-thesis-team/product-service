@@ -1,6 +1,7 @@
 package httpsvc
 
 import (
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -48,11 +49,6 @@ func (s *service) Create() echo.HandlerFunc {
 		case usecase.ErrPermissionDenied:
 			return ErrPermissionDenied
 		default:
-			logrus.Error(err)
-			return ErrInternal
-		}
-
-		if err != nil {
 			logrus.Error(err)
 			return ErrInternal
 		}
@@ -173,11 +169,6 @@ func (s *service) Update() echo.HandlerFunc {
 			return ErrInternal
 		}
 
-		if err != nil {
-			logrus.Error(err)
-			return ErrInternal
-		}
-
 		return c.JSON(http.StatusCreated, setSuccessResponse(createdProduct))
 	}
 }
@@ -263,5 +254,46 @@ func (s *service) RemoveImage() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, setSuccessResponse(input.ImageUrl))
+	}
+}
+
+func (s *service) UploadFile() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+
+		file, err := c.FormFile("product_file")
+		if err != nil {
+			logrus.WithContext(ctx).WithError(err).Error("failed to get product file")
+			return ErrInvalidArgument
+		}
+
+		src, err := file.Open()
+		if err != nil {
+			logrus.WithContext(ctx).WithError(err).Error("failed to open product file")
+			return err
+		}
+		defer src.Close()
+
+		productFile, err := io.ReadAll(src)
+		if err != nil {
+			logrus.WithContext(ctx).WithError(err).Error("failed to open read product file")
+			return err
+		}
+
+		err = s.productUsecase.UploadFile(ctx, model.GetUserFromCtx(ctx), model.UploadFileProductRequest{
+			ProductFile: productFile,
+		})
+		if err != nil {
+			logrus.WithContext(ctx).WithError(err).Error("failed to upload file")
+			return ErrInternal
+		}
+
+		logrus.WithContext(ctx).WithFields(logrus.Fields{
+			"file_name": file.Filename,
+		}).Info("success upload image")
+
+		return c.JSON(http.StatusOK, setSuccessResponse(model.UploadImageProductResponse{
+			FileName: file.Filename,
+		}))
 	}
 }

@@ -221,3 +221,12 @@ func MaxSizePerRequest() int64 {
 	}
 	return viper.GetInt64("max_size_per_request")
 }
+
+// WorkerConcurrency :nodoc:
+func WorkerConcurrency() int {
+	if viper.GetInt("worker.concurrency") > 0 {
+		return viper.GetInt("worker.concurrency")
+	}
+
+	return DefaultWorkerConcurrency
+}

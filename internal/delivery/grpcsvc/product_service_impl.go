@@ -2,6 +2,9 @@ package grpcsvc
 
 import (
 	"context"
+	"fmt"
+	"strings"
+
 	"github.com/binus-thesis-team/product-service/internal/config"
 	"github.com/binus-thesis-team/product-service/internal/model"
 	"github.com/binus-thesis-team/product-service/internal/usecase"
@@ -10,7 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"strings"
 )
 
 // FindAllProductsByIDs :nodoc:
@@ -71,5 +73,19 @@ func (s *Service) SearchAllProducts(ctx context.Context, req *pb.ProductSearchRe
 	return &pb.SearchResponse{
 		Ids:   ids,
 		Count: count,
+	}, nil
+}
+
+func (s *Service) UploadProducts(ctx context.Context, req *pb.UploadProductsRequest) (out *pb.UploadProductsResponse, err error) {
+	err = s.productUsecase.UploadFileWithoutSession(ctx, model.UploadFileProductRequest{
+		ProductFile: req.GetContent(),
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.UploadProductsResponse{
+		Success: true,
+		Message: fmt.Sprintf("Success upload file %s", req.GetFilename()),
 	}, nil
 }

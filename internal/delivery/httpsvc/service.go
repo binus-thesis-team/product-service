@@ -39,5 +39,7 @@ func (s *service) initRoutes(group *echo.Group) {
 			imageGroup.POST("/upload/", s.UploadImage())
 			imageGroup.DELETE("/remove/", s.RemoveImage())
 		}
+
+		productRoute.POST("/file/upload/", s.UploadFile())
 	}
 }

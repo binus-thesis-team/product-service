@@ -67,3 +67,16 @@ func (c *grpcClient) SearchAllProducts(ctx context.Context, in *pb.ProductSearch
 	out, err = cli.SearchAllProducts(ctx, in, opts...)
 	return
 }
+
+func (c *grpcClient) UploadProducts(ctx context.Context, in *pb.UploadProductsRequest, opts ...grpc.CallOption) (out *pb.UploadProductsResponse, err error) {
+	conn, err := c.Conn.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = conn.Close()
+	}()
+	cli := pb.NewProductServiceClient(conn.ClientConn)
+	out, err = cli.UploadProducts(ctx, in, opts...)
+	return
+}

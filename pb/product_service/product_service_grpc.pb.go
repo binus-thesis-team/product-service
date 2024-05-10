@@ -22,6 +22,7 @@ const (
 	ProductService_FindAllProductsByIDs_FullMethodName = "/pb.product_service.ProductService/FindAllProductsByIDs"
 	ProductService_FindByProductID_FullMethodName      = "/pb.product_service.ProductService/FindByProductID"
 	ProductService_SearchAllProducts_FullMethodName    = "/pb.product_service.ProductService/SearchAllProducts"
+	ProductService_UploadProducts_FullMethodName       = "/pb.product_service.ProductService/UploadProducts"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -31,6 +32,7 @@ type ProductServiceClient interface {
 	FindAllProductsByIDs(ctx context.Context, in *FindByIDsRequest, opts ...grpc.CallOption) (*Products, error)
 	FindByProductID(ctx context.Context, in *FindByIDRequest, opts ...grpc.CallOption) (*Product, error)
 	SearchAllProducts(ctx context.Context, in *ProductSearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
+	UploadProducts(ctx context.Context, in *UploadProductsRequest, opts ...grpc.CallOption) (*UploadProductsResponse, error)
 }
 
 type productServiceClient struct {
@@ -68,6 +70,15 @@ func (c *productServiceClient) SearchAllProducts(ctx context.Context, in *Produc
 	return out, nil
 }
 
+func (c *productServiceClient) UploadProducts(ctx context.Context, in *UploadProductsRequest, opts ...grpc.CallOption) (*UploadProductsResponse, error) {
+	out := new(UploadProductsResponse)
+	err := c.cc.Invoke(ctx, ProductService_UploadProducts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProductServiceServer is the server API for ProductService service.
 // All implementations must embed UnimplementedProductServiceServer
 // for forward compatibility
@@ -75,6 +86,7 @@ type ProductServiceServer interface {
 	FindAllProductsByIDs(context.Context, *FindByIDsRequest) (*Products, error)
 	FindByProductID(context.Context, *FindByIDRequest) (*Product, error)
 	SearchAllProducts(context.Context, *ProductSearchRequest) (*SearchResponse, error)
+	UploadProducts(context.Context, *UploadProductsRequest) (*UploadProductsResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -90,6 +102,9 @@ func (UnimplementedProductServiceServer) FindByProductID(context.Context, *FindB
 }
 func (UnimplementedProductServiceServer) SearchAllProducts(context.Context, *ProductSearchRequest) (*SearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchAllProducts not implemented")
+}
+func (UnimplementedProductServiceServer) UploadProducts(context.Context, *UploadProductsRequest) (*UploadProductsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UploadProducts not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 
@@ -158,6 +173,24 @@ func _ProductService_SearchAllProducts_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_UploadProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadProductsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).UploadProducts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_UploadProducts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).UploadProducts(ctx, req.(*UploadProductsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProductService_ServiceDesc is the grpc.ServiceDesc for ProductService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -176,6 +209,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchAllProducts",
 			Handler:    _ProductService_SearchAllProducts_Handler,
+		},
+		{
+			MethodName: "UploadProducts",
+			Handler:    _ProductService_UploadProducts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

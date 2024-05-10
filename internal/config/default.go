@@ -29,4 +29,5 @@ const (
 	DefaultLoginLockTTL       = 5 * time.Minute
 
 	DefaultMaxSizePerRequest = 25
+	DefaultWorkerConcurrency   = 10
 )
