@@ -11,20 +11,17 @@ import (
 
 	"github.com/binus-thesis-team/iam-service/rbac"
 	"github.com/binus-thesis-team/iam-service/utils"
-	productClient "github.com/binus-thesis-team/product-service/client"
 	"github.com/binus-thesis-team/product-service/internal/model"
 	"github.com/sirupsen/logrus"
 )
 
 type productUsecase struct {
-	productRepository    model.ProductRepository
-	productServiceClient productClient.ProductServiceClient
+	productRepository model.ProductRepository
 }
 
-func NewProductUsecase(productRepository model.ProductRepository, productServiceClient productClient.ProductServiceClient) model.ProductUsecase {
+func NewProductUsecase(productRepository model.ProductRepository) model.ProductUsecase {
 	return &productUsecase{
-		productRepository:    productRepository,
-		productServiceClient: productServiceClient,
+		productRepository: productRepository,
 	}
 }
 

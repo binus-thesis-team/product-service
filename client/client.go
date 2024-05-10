@@ -2,19 +2,17 @@ package client
 
 import (
 	"context"
+	"github.com/binus-thesis-team/product-service/internal/model"
 
-	pb "github.com/binus-thesis-team/product-service/pb/product_service"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // ProductServiceClient defines the interface for interacting with the Product service.
 type ProductServiceClient interface {
-	FindAllProductsByIDs(ctx context.Context, req *pb.FindByIDsRequest, co ...grpc.CallOption) (*pb.Products, error)
-	FindByProductID(ctx context.Context, req *pb.FindByIDRequest, co ...grpc.CallOption) (*pb.Product, error)
-	SearchAllProducts(ctx context.Context, in *pb.ProductSearchRequest, opts ...grpc.CallOption) (out *pb.SearchResponse, err error)
+	FindByProductID(ctx context.Context, id int64) (*model.Product, error)
+	SearchAllProducts(ctx context.Context, query string) (ids []int64, count int64, err error)
 }
 
 // convertErrorGRPCToErrorGeneral mapping error from GRPC Error to general Error

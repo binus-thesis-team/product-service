@@ -22,6 +22,8 @@ func RouteService(
 		productUsecase: productUsecase,
 		authMiddleware: authMiddleware,
 	}
+
+	svc.initInternalCommunicationRoutes(group.Group("/internal"))
 	svc.initRoutes(group)
 }
 
@@ -41,5 +43,12 @@ func (s *service) initRoutes(group *echo.Group) {
 		}
 
 		productRoute.POST("/file/upload/", s.UploadFile())
+	}
+}
+
+func (s *service) initInternalCommunicationRoutes(group *echo.Group) {
+	productRoute := group.Group("/products")
+	{
+		productRoute.GET("/:product_id/", s.GetDetail())
 	}
 }

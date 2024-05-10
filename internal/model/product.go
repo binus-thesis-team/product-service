@@ -70,6 +70,32 @@ func (p *Product) ToProto() *pb.Product {
 	return product
 }
 
+func NewProductFromProto(p *pb.Product) *Product {
+	if p == nil {
+		return nil
+	}
+
+	product := &Product{
+		ID:          p.GetId(),
+		Name:        p.GetName(),
+		Price:       p.GetPrice(),
+		Stock:       p.GetStock(),
+		Description: p.GetDescription(),
+		ImageUrl:    p.GetImageUrl(),
+	}
+
+	createdAt := p.GetCreatedAt().AsTime()
+	product.CreatedAt = &createdAt
+
+	updatedAt := p.GetUpdatedAt().AsTime()
+	product.UpdatedAt = &updatedAt
+
+	deletedAt := p.GetDeletedAt().AsTime()
+	_ = product.DeletedAt.Scan(deletedAt)
+
+	return product
+}
+
 type CreateProductRequest struct {
 	Name        string  `json:"name,omitempty" binding:"required"`
 	Price       float64 `json:"price,omitempty" binding:"required"`

@@ -14,7 +14,6 @@ import (
 	iamServiceClient "github.com/binus-thesis-team/iam-service/client"
 	iam "github.com/binus-thesis-team/iam-service/pb/iam_service"
 	iamGrpcUtils "github.com/binus-thesis-team/iam-service/utils/grpcutils"
-	productServiceClient "github.com/binus-thesis-team/product-service/client"
 	"github.com/binus-thesis-team/product-service/internal/config"
 	"github.com/binus-thesis-team/product-service/internal/db"
 	"github.com/binus-thesis-team/product-service/internal/delivery/grpcsvc"
@@ -57,9 +56,6 @@ func runServer(cmd *cobra.Command, args []string) {
 	newIAMClient, err := getIAMServiceGRPCClient()
 	continueOrFatal(err)
 
-	newProductClient, err := getProductServiceGRPCClient()
-	continueOrFatal(err)
-
 	authenticationCacher := cacher.NewCacheManager()
 	generalCacher := cacher.NewCacheManager()
 
@@ -99,7 +95,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	time.Local = location
 
 	productRepository := repository.NewProductRepository(db.PostgreSQL, generalCacher)
-	productUsecase := usecase.NewProductUsecase(productRepository, newProductClient)
+	productUsecase := usecase.NewProductUsecase(productRepository)
 	iamAuthAdapter := auth.NewIAMServiceAdapter(newIAMClient)
 	authMiddleware := auth.NewAuthenticationMiddleware(iamAuthAdapter, authenticationCacher)
 	grpcAuthMD := auth.NewGRPCMiddleware(iamAuthAdapter, authenticationCacher)
@@ -195,13 +191,6 @@ func clientInterceptor() grpc.UnaryClientInterceptor {
 
 func getIAMServiceGRPCClient() (iam.IAMServiceClient, error) {
 	grpcClient, err := iamServiceClient.NewGRPCClient("localhost:9000", newIAMGRPCPoolSetting(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(clientInterceptor()))
-
-	return grpcClient, err
-}
-
-func getProductServiceGRPCClient() (pb.ProductServiceClient, error) {
-	grpcClient, err := productServiceClient.NewGRPCClient("localhost:9001", newProductGRPCPoolSetting(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(clientInterceptor()))
 
 	return grpcClient, err
