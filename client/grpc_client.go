@@ -44,7 +44,7 @@ func (g *grpcClient) FindByProductID(ctx context.Context, id int64) (*model.Prod
 	return model.NewProductFromProto(out), nil
 }
 
-func (g *grpcClient) SearchAllProducts(ctx context.Context, query string) (ids []int64, count int64, err error) {
+func (g *grpcClient) FindProductIDsByQuery(ctx context.Context, query string) (ids []int64, count int64, err error) {
 	conn, err := g.pool.Get(ctx)
 	if err != nil {
 		return nil, 0, err
@@ -53,7 +53,7 @@ func (g *grpcClient) SearchAllProducts(ctx context.Context, query string) (ids [
 		_ = conn.Close()
 	}()
 	cli := pb.NewProductServiceClient(conn.ClientConn)
-	out, err := cli.SearchAllProducts(ctx, &pb.ProductSearchRequest{
+	out, err := cli.FindProductIDsByQuery(ctx, &pb.FindByQueryRequest{
 		Query: query,
 	})
 	if err != nil {

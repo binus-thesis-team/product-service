@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ProductService_FindAllProductsByIDs_FullMethodName = "/pb.product_service.ProductService/FindAllProductsByIDs"
-	ProductService_FindByProductID_FullMethodName      = "/pb.product_service.ProductService/FindByProductID"
-	ProductService_SearchAllProducts_FullMethodName    = "/pb.product_service.ProductService/SearchAllProducts"
-	ProductService_UploadProducts_FullMethodName       = "/pb.product_service.ProductService/UploadProducts"
+	ProductService_FindAllProductsByIDs_FullMethodName  = "/pb.product_service.ProductService/FindAllProductsByIDs"
+	ProductService_FindByProductID_FullMethodName       = "/pb.product_service.ProductService/FindByProductID"
+	ProductService_SearchAllProducts_FullMethodName     = "/pb.product_service.ProductService/SearchAllProducts"
+	ProductService_FindProductIDsByQuery_FullMethodName = "/pb.product_service.ProductService/FindProductIDsByQuery"
+	ProductService_UploadProducts_FullMethodName        = "/pb.product_service.ProductService/UploadProducts"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -32,6 +33,7 @@ type ProductServiceClient interface {
 	FindAllProductsByIDs(ctx context.Context, in *FindByIDsRequest, opts ...grpc.CallOption) (*Products, error)
 	FindByProductID(ctx context.Context, in *FindByIDRequest, opts ...grpc.CallOption) (*Product, error)
 	SearchAllProducts(ctx context.Context, in *ProductSearchRequest, opts ...grpc.CallOption) (*SearchResponse, error)
+	FindProductIDsByQuery(ctx context.Context, in *FindByQueryRequest, opts ...grpc.CallOption) (*SearchResponse, error)
 	UploadProducts(ctx context.Context, in *UploadProductsRequest, opts ...grpc.CallOption) (*UploadProductsResponse, error)
 }
 
@@ -70,6 +72,15 @@ func (c *productServiceClient) SearchAllProducts(ctx context.Context, in *Produc
 	return out, nil
 }
 
+func (c *productServiceClient) FindProductIDsByQuery(ctx context.Context, in *FindByQueryRequest, opts ...grpc.CallOption) (*SearchResponse, error) {
+	out := new(SearchResponse)
+	err := c.cc.Invoke(ctx, ProductService_FindProductIDsByQuery_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *productServiceClient) UploadProducts(ctx context.Context, in *UploadProductsRequest, opts ...grpc.CallOption) (*UploadProductsResponse, error) {
 	out := new(UploadProductsResponse)
 	err := c.cc.Invoke(ctx, ProductService_UploadProducts_FullMethodName, in, out, opts...)
@@ -86,6 +97,7 @@ type ProductServiceServer interface {
 	FindAllProductsByIDs(context.Context, *FindByIDsRequest) (*Products, error)
 	FindByProductID(context.Context, *FindByIDRequest) (*Product, error)
 	SearchAllProducts(context.Context, *ProductSearchRequest) (*SearchResponse, error)
+	FindProductIDsByQuery(context.Context, *FindByQueryRequest) (*SearchResponse, error)
 	UploadProducts(context.Context, *UploadProductsRequest) (*UploadProductsResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
@@ -102,6 +114,9 @@ func (UnimplementedProductServiceServer) FindByProductID(context.Context, *FindB
 }
 func (UnimplementedProductServiceServer) SearchAllProducts(context.Context, *ProductSearchRequest) (*SearchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchAllProducts not implemented")
+}
+func (UnimplementedProductServiceServer) FindProductIDsByQuery(context.Context, *FindByQueryRequest) (*SearchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindProductIDsByQuery not implemented")
 }
 func (UnimplementedProductServiceServer) UploadProducts(context.Context, *UploadProductsRequest) (*UploadProductsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadProducts not implemented")
@@ -173,6 +188,24 @@ func _ProductService_SearchAllProducts_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProductService_FindProductIDsByQuery_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FindByQueryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).FindProductIDsByQuery(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_FindProductIDsByQuery_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).FindProductIDsByQuery(ctx, req.(*FindByQueryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProductService_UploadProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UploadProductsRequest)
 	if err := dec(in); err != nil {
@@ -209,6 +242,10 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchAllProducts",
 			Handler:    _ProductService_SearchAllProducts_Handler,
+		},
+		{
+			MethodName: "FindProductIDsByQuery",
+			Handler:    _ProductService_FindProductIDsByQuery_Handler,
 		},
 		{
 			MethodName: "UploadProducts",

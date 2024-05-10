@@ -9,5 +9,6 @@ service ProductService {
     rpc FindAllProductsByIDs(FindByIDsRequest) returns (Products);
     rpc FindByProductID(FindByIDRequest) returns (Product);
     rpc SearchAllProducts(ProductSearchRequest) returns (SearchResponse) {}
+    rpc FindProductIDsByQuery(FindByQueryRequest) returns (SearchResponse) {}
     rpc UploadProducts(UploadProductsRequest) returns (UploadProductsResponse) {}
 }

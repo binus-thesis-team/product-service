@@ -201,6 +201,46 @@ func (u *productUsecase) SearchByCriteria(ctx context.Context, user model.Sessio
 	return products, count, nil
 }
 
+func (u *productUsecase) FindIDsByQuery(ctx context.Context, query string) (ids []int64, count int64, err error) {
+	logger := logrus.WithFields(logrus.Fields{
+		"ctx":   utils.DumpIncomingContext(ctx),
+		"query": query,
+	})
+
+	var cursorAfter int64
+	limitSize := int64(100)
+
+	var allIDs []int64
+
+	for {
+		ids, err := u.productRepository.FindAllByQuery(ctx, query, limitSize, cursorAfter)
+		if err != nil {
+			logger.Error(err)
+			return nil, 0, err
+		}
+
+		if len(ids) == 0 {
+			break
+		}
+
+		allIDs = append(allIDs, ids...)
+
+		cursorAfter = ids[len(ids)-1]
+
+		if len(ids) < int(limitSize) {
+			logger.Info("last batch")
+			break
+		}
+	}
+
+	if len(allIDs) == 0 {
+		return nil, 0, nil
+	}
+
+	count = int64(len(allIDs))
+	return allIDs, count, nil
+}
+
 func (u *productUsecase) FindAllByIDs(ctx context.Context, ids []int64) (products []*model.Product) {
 	logger := logrus.WithFields(logrus.Fields{
 		"ctx": utils.DumpIncomingContext(ctx),

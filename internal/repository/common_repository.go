@@ -44,3 +44,9 @@ func findFromCacheByKey[T any](cache cacher.CacheManager, key string) (item T, m
 
 	return
 }
+
+func withSize(size int64) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Limit(int(size))
+	}
+}

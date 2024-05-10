@@ -50,5 +50,6 @@ func (s *service) initInternalCommunicationRoutes(group *echo.Group) {
 	productRoute := group.Group("/products")
 	{
 		productRoute.GET("/:product_id/", s.GetDetail())
+		productRoute.GET("/", s.handleFindProductIDsByQuery())
 	}
 }

@@ -1,17 +1,16 @@
 package httpsvc
 
 import (
-	"io"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strconv"
-
 	"github.com/binus-thesis-team/iam-service/utils"
 	"github.com/binus-thesis-team/product-service/internal/model"
 	"github.com/binus-thesis-team/product-service/internal/usecase"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 )
 
 func (s *service) Create() echo.HandlerFunc {
@@ -125,6 +124,30 @@ func (s *service) GetList() echo.HandlerFunc {
 		}).Info("success get products")
 
 		return c.JSON(http.StatusOK, toResourcePaginationResponse(page, limit, count, products))
+	}
+}
+
+func (s *service) handleFindProductIDsByQuery() echo.HandlerFunc {
+	type searchResponse struct {
+		Count int64   `json:"count"`
+		Ids   []int64 `json:"ids"`
+	}
+
+	return func(c echo.Context) error {
+		ctx := c.Request().Context()
+
+		query := c.QueryParam("query")
+
+		productIDs, count, err := s.productUsecase.FindIDsByQuery(ctx, query)
+		if err != nil {
+			logrus.WithError(err).Error("failed to get products")
+			return c.JSON(http.StatusBadRequest, err)
+		}
+
+		return c.JSON(http.StatusOK, setSuccessResponse(searchResponse{
+			Count: count,
+			Ids:   productIDs,
+		}))
 	}
 }
 

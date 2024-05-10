@@ -18,12 +18,18 @@ type successResponse[T any] struct {
 	Data    T    `json:"data"`
 }
 
+type searchResponse struct {
+	Count int64   `json:"count"`
+	Ids   []int64 `json:"ids"`
+}
+
 func NewHTTPRestClient(baseURL string) ProductServiceClient {
 	return &httpClient{baseURL: baseURL}
 }
+
 func (h *httpClient) FindByProductID(ctx context.Context, id int64) (*model.Product, error) {
 	url := fmt.Sprintf("%s/products/%d", h.baseURL, id)
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +60,38 @@ func (h *httpClient) FindByProductID(ctx context.Context, id int64) (*model.Prod
 	return response.Data, nil
 }
 
-func (h *httpClient) SearchAllProducts(ctx context.Context, query string) (ids []int64, count int64, err error) {
-	//TODO implement me
-	panic("implement me")
+func (h *httpClient) FindProductIDsByQuery(ctx context.Context, query string) (ids []int64, count int64, err error) {
+	// Construct the URL with query parameters
+	url := fmt.Sprintf("%s/products?query=%s", h.baseURL, query)
+
+	// Create the request with context
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Send the request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer resp.Body.Close()
+
+	// Check if the status code is what we expect
+	if resp.StatusCode != http.StatusOK {
+		return nil, 0, fmt.Errorf("server error: %s", resp.Status)
+	}
+
+	// Read and parse the body
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var result searchResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, 0, err
+	}
+
+	return result.Ids, result.Count, nil
 }

@@ -23,6 +23,12 @@ message FindByIDsRequest {
 }
 
 
+// FindByQueryRequest :nodoc:
+message FindByQueryRequest {
+	string query = 1;
+}
+
+
 // FindMultiRequest :nodoc:
 message FindMultiRequest {
 	/*

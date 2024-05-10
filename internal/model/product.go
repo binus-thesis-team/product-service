@@ -20,6 +20,7 @@ type ProductUsecase interface {
 	DeleteByProductID(ctx context.Context, user SessionUser, productID int64) (err error)
 	SearchByPage(ctx context.Context, searchCriteria ProductSearchCriteria) (ids []int64, count int64, err error)
 	SearchByCriteria(ctx context.Context, user SessionUser, searchCriteria ProductSearchCriteria) (products []*Product, count int64, err error)
+	FindIDsByQuery(ctx context.Context, query string) (ids []int64, count int64, err error)
 	FindAllByIDs(ctx context.Context, ids []int64) (products []*Product)
 	UploadImage(ctx context.Context, user SessionUser, input UploadImageProductRequest) error
 	RemoveImage(ctx context.Context, user SessionUser, input RemoveImageProductRequest) error
@@ -33,6 +34,7 @@ type ProductRepository interface {
 	UpdateByID(ctx context.Context, requesterID int64, product *Product) (err error)
 	DeleteByID(ctx context.Context, id int64) error
 	SearchByPage(ctx context.Context, searchCriteria ProductSearchCriteria) (ids []int64, count int64, err error)
+	FindAllByQuery(ctx context.Context, query string, size, cursorAfter int64) (ids []int64, err error)
 }
 
 type Product struct {

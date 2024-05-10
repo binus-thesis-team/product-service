@@ -12,7 +12,7 @@ import (
 // ProductServiceClient defines the interface for interacting with the Product service.
 type ProductServiceClient interface {
 	FindByProductID(ctx context.Context, id int64) (*model.Product, error)
-	SearchAllProducts(ctx context.Context, query string) (ids []int64, count int64, err error)
+	FindProductIDsByQuery(ctx context.Context, query string) (ids []int64, count int64, err error)
 }
 
 // convertErrorGRPCToErrorGeneral mapping error from GRPC Error to general Error

@@ -76,6 +76,18 @@ func (s *Service) SearchAllProducts(ctx context.Context, req *pb.ProductSearchRe
 	}, nil
 }
 
+func (s *Service) FindProductIDsByQuery(ctx context.Context, req *pb.FindByQueryRequest) (out *pb.SearchResponse, err error) {
+	ids, count, err := s.productUsecase.FindIDsByQuery(ctx, req.GetQuery())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.SearchResponse{
+		Ids:   ids,
+		Count: count,
+	}, nil
+}
+
 func (s *Service) UploadProducts(ctx context.Context, req *pb.UploadProductsRequest) (out *pb.UploadProductsResponse, err error) {
 	err = s.productUsecase.UploadFileWithoutSession(ctx, model.UploadFileProductRequest{
 		ProductFile: req.GetContent(),

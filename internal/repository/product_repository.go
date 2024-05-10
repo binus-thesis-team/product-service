@@ -152,6 +152,30 @@ func (u *productRepository) SearchByPage(ctx context.Context, searchCriteria mod
 	}
 }
 
+func (u *productRepository) FindAllByQuery(ctx context.Context, query string, size, cursorAfter int64) ([]int64, error) {
+	var ids []int64
+	err := u.db.WithContext(ctx).
+		Model(model.Product{}).
+		Scopes(u.scopeByProductNameAndDescription(query), withSize(size)).
+		Where("id > ?", cursorAfter).
+		Order("id ASC").
+		Pluck("id", &ids).Error
+	switch err {
+	case nil:
+		return ids, nil
+	case gorm.ErrRecordNotFound:
+		return nil, nil
+	default:
+		logrus.WithFields(logrus.Fields{
+			"ctx":         utils.DumpIncomingContext(ctx),
+			"query":       query,
+			"size":        size,
+			"cursorAfter": cursorAfter,
+		}).Error(err)
+		return nil, err
+	}
+}
+
 func (u *productRepository) findAllIDsByCriteria(ctx context.Context, criteria model.ProductSearchCriteria) ([]int64, error) {
 	var scopes []func(*gorm.DB) *gorm.DB
 	scopes = append(scopes, scopeByPageAndLimit(criteria.Page, criteria.Size))
