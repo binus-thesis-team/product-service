@@ -286,7 +286,7 @@ func (u *productUsecase) FindAllByIDs(ctx context.Context, ids []int64) (product
 }
 
 func (u *productUsecase) UploadImage(ctx context.Context, user model.SessionUser, input model.UploadImageProductRequest) error {
-	if !user.HasAccess(rbac.ResourceUser, rbac.ActionCreateAny) {
+	if !user.HasAccess(rbac.ResourceProduct, rbac.ActionCreateAny) {
 		return ErrPermissionDenied
 	}
 
@@ -325,7 +325,7 @@ func (u *productUsecase) UploadImage(ctx context.Context, user model.SessionUser
 }
 
 func (u *productUsecase) RemoveImage(ctx context.Context, user model.SessionUser, input model.RemoveImageProductRequest) error {
-	if !user.HasAccess(rbac.ResourceUser, rbac.ActionCreateAny) {
+	if !user.HasAccess(rbac.ResourceProduct, rbac.ActionDeleteAny) {
 		return ErrPermissionDenied
 	}
 
@@ -355,7 +355,7 @@ func (u *productUsecase) RemoveImage(ctx context.Context, user model.SessionUser
 }
 
 func (u *productUsecase) UploadFile(ctx context.Context, user model.SessionUser, input model.UploadFileProductRequest) error {
-	if !user.HasAccess(rbac.ResourceWishlist, rbac.ActionCreateAny) {
+	if !user.HasAccess(rbac.ResourceProduct, rbac.ActionCreateAny) {
 		return ErrPermissionDenied
 	}
 

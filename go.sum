@@ -4,8 +4,8 @@ github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20190729070250-5ae5475bae
 github.com/banzaicloud/logrus-runtime-formatter v0.0.0-20190729070250-5ae5475bae5e/go.mod h1:hEvEpPmuwKO+0TbrDQKIkmX0gW2s2waZHF8pIhEEmpM=
 github.com/binus-thesis-team/cacher v1.0.1 h1:LXQJsbxyoopgJ4O1QQaDBiDYLFTvwB1L3SNxCUsqDJ8=
 github.com/binus-thesis-team/cacher v1.0.1/go.mod h1:0tCGRvjuWgT/dy6dlTTVjiU0ZFERS6wRaoJB+lUhMPI=
-github.com/binus-thesis-team/iam-service v1.2.1 h1:shUHzxxLQ+079sHo/kdAOKanE441vCSPz5dq19vLdvY=
-github.com/binus-thesis-team/iam-service v1.2.1/go.mod h1:X4b5rsZFGChQQCN+jsyXDqi2F5MN8FOSzvagNyKE6Lg=
+github.com/binus-thesis-team/iam-service v1.2.2 h1:S6A4O12+vmQ3N5n1WOpx2Y+qAEaGBxt59sGK2VvMtgg=
+github.com/binus-thesis-team/iam-service v1.2.2/go.mod h1:X4b5rsZFGChQQCN+jsyXDqi2F5MN8FOSzvagNyKE6Lg=
 github.com/bytedance/sonic v1.5.0/go.mod h1:ED5hyg4y6t3/9Ku1R6dU/4KyJ48DZ4jPhfY1O2AihPM=
 github.com/bytedance/sonic v1.10.0-rc/go.mod h1:ElCzW+ufi8qKqNW0FY314xriJhyJhuoJ3gFZdAHF7NM=
 github.com/bytedance/sonic v1.11.3 h1:jRN+yEjakWh8aK5FzrciUHG8OFXK+4/KrAX/ysEtHAA=
