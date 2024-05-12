@@ -27,7 +27,7 @@ type searchResponse struct {
 }
 
 func NewHTTPRestClient(baseURL string) ProductServiceClient {
-	httpClientPool := httputils.NewHTTPClientPool(10000, 15*time.Second)
+	httpClientPool := httputils.NewHTTPClientPool(200, 10*time.Second)
 
 	return &httpClient{
 		baseURL: baseURL,
@@ -37,6 +37,7 @@ func NewHTTPRestClient(baseURL string) ProductServiceClient {
 
 func (h *httpClient) FindByProductID(ctx context.Context, id int64) (*model.Product, error) {
 	client := h.clients.Get()
+	defer h.clients.Put(client)
 
 	url := fmt.Sprintf("%s/products/%d", h.baseURL, id)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -73,6 +74,7 @@ func (h *httpClient) FindByProductID(ctx context.Context, id int64) (*model.Prod
 
 func (h *httpClient) FindProductIDsByQuery(ctx context.Context, query string) (ids []int64, count int64, err error) {
 	client := h.clients.Get()
+	defer h.clients.Put(client)
 
 	// Construct the URL with query parameters
 	url := fmt.Sprintf("%s/products?query=%s", h.baseURL, query)

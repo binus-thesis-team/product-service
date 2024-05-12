@@ -3,45 +3,39 @@ package httputils
 import (
 	"net"
 	"net/http"
-	"sync"
 	"time"
 )
 
 // HTTPClientPool manages a pool of http.Client instances
 type HTTPClientPool struct {
-	clients []*http.Client
-	lock    sync.Mutex
-	index   int
+	pool chan *http.Client
 }
 
 // NewHTTPClientPool creates a new pool of http.Client instances
 func NewHTTPClientPool(maxClients int, timeout time.Duration) *HTTPClientPool {
-	pool := &HTTPClientPool{
-		clients: make([]*http.Client, maxClients),
-	}
-	for i := range pool.clients {
-		transport := &http.Transport{
-			MaxIdleConns:       10000,
-			IdleConnTimeout:    30 * time.Second,
-			DisableCompression: true,
-			DialContext: (&net.Dialer{
-				Timeout:   timeout,
-				KeepAlive: timeout,
-			}).DialContext,
+	pool := make(chan *http.Client, maxClients)
+	for i := 0; i < maxClients; i++ {
+		client := &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConns:        10,
+				MaxIdleConnsPerHost: 10,
+				IdleConnTimeout:     90 * time.Second,
+				DialContext: (&net.Dialer{
+					Timeout:   30 * time.Second,
+					KeepAlive: 30 * time.Second,
+				}).DialContext,
+			},
+			Timeout: timeout,
 		}
-		pool.clients[i] = &http.Client{
-			Transport: transport,
-			Timeout:   timeout,
-		}
+		pool <- client
 	}
-	return pool
+	return &HTTPClientPool{pool: pool}
 }
 
-// Get retrieves a client from the pool, rotating in a round-robin fashion
 func (p *HTTPClientPool) Get() *http.Client {
-	p.lock.Lock()
-	defer p.lock.Unlock()
-	client := p.clients[p.index]
-	p.index = (p.index + 1) % len(p.clients)
-	return client
+	return <-p.pool
+}
+
+func (p *HTTPClientPool) Put(client *http.Client) {
+	p.pool <- client
 }
