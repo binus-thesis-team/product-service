@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/binus-thesis-team/product-service/internal/model"
-	"github.com/binus-thesis-team/product-service/pkg/utils/httputils"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"time"
 )
 
 type httpClient struct {
-	client  *httputils.PooledHTTPClient
+	client  *http.Client
 	baseURL string
 }
 
@@ -27,15 +27,24 @@ type searchResponse struct {
 }
 
 func NewHTTPRestClient(baseURL string) ProductServiceClient {
-	options := &httputils.HTTPClientOptions{
-		Timeout:             30 * time.Second,
-		MaxIdleConns:        200,
-		MaxIdleConnsPerHost: 100,
+	transport := &http.Transport{
+		MaxIdleConns:        100,              // Increase max idle connections if necessary
+		MaxIdleConnsPerHost: 100,              // Set the max idle connections per host
+		IdleConnTimeout:     15 * time.Second, // Keep idle connections alive for longer
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second, // Timeout for TCP connections
+			KeepAlive: 30 * time.Second, // Keep-alive period for active network connections
+		}).DialContext,
 	}
 
-	pooledClient := httputils.NewPooledHTTPClient(options)
+	client := &http.Client{
+		Transport: transport,
+	}
 
-	return &httpClient{client: pooledClient, baseURL: baseURL}
+	return &httpClient{
+		client:  client,
+		baseURL: baseURL,
+	}
 }
 
 func (h *httpClient) FindByProductID(ctx context.Context, id int64) (*model.Product, error) {
@@ -86,6 +95,7 @@ func (h *httpClient) FindProductIDsByQuery(ctx context.Context, query string) (i
 	if err != nil {
 		return nil, 0, err
 	}
+
 	defer resp.Body.Close()
 
 	// Check if the status code is what we expect
