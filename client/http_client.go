@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/binus-thesis-team/product-service/internal/model"
+	"github.com/binus-thesis-team/product-service/pkg/utils/httputils"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type httpClient struct {
+	client  *httputils.PooledHTTPClient
 	baseURL string
 }
 
@@ -24,7 +27,15 @@ type searchResponse struct {
 }
 
 func NewHTTPRestClient(baseURL string) ProductServiceClient {
-	return &httpClient{baseURL: baseURL}
+	options := &httputils.HTTPClientOptions{
+		Timeout:             30 * time.Second,
+		MaxIdleConns:        200,
+		MaxIdleConnsPerHost: 100,
+	}
+
+	pooledClient := httputils.NewPooledHTTPClient(options)
+
+	return &httpClient{client: pooledClient, baseURL: baseURL}
 }
 
 func (h *httpClient) FindByProductID(ctx context.Context, id int64) (*model.Product, error) {
@@ -33,7 +44,8 @@ func (h *httpClient) FindByProductID(ctx context.Context, id int64) (*model.Prod
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+
+	resp, err := h.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +82,7 @@ func (h *httpClient) FindProductIDsByQuery(ctx context.Context, query string) (i
 		return nil, 0, err
 	}
 
-	// Send the request
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := h.client.Do(req)
 	if err != nil {
 		return nil, 0, err
 	}
