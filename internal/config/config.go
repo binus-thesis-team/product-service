@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -14,6 +15,9 @@ func GetConf() {
 	viper.AddConfigPath("./..")
 	viper.AddConfigPath("./../..")
 	viper.SetConfigName("config")
+
+	replacer := strings.NewReplacer(".", "_")
+	viper.SetEnvKeyReplacer(replacer)
 
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
