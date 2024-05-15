@@ -234,3 +234,7 @@ func WorkerConcurrency() int {
 
 	return DefaultWorkerConcurrency
 }
+
+func GRPCIAMTarget() string {
+	return viper.GetString("services.grpc.iam_target")
+}

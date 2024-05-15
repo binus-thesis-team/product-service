@@ -183,14 +183,13 @@ func gracefulShutdown(grpcSvr *grpc.Server, httpSvr *echo.Echo) {
 
 func clientInterceptor() grpc.UnaryClientInterceptor {
 	return grpcutils.UnaryClientInterceptor(&grpcutils.GRPCUnaryInterceptorOptions{
-		Timeout:           1*time.Second + 100*time.Millisecond,
-		RetryCount:        0,
-		UseCircuitBreaker: true,
+		Timeout:    1*time.Second + 100*time.Millisecond,
+		RetryCount: 0,
 	})
 }
 
 func getIAMServiceGRPCClient() (iam.IAMServiceClient, error) {
-	grpcClient, err := iamServiceClient.NewGRPCClient("localhost:9000", newIAMGRPCPoolSetting(),
+	grpcClient, err := iamServiceClient.NewGRPCClient(config.GRPCIAMTarget(), newIAMGRPCPoolSetting(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(clientInterceptor()))
 
 	return grpcClient, err
