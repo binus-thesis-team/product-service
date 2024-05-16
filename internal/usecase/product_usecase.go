@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/binus-thesis-team/iam-service/rbac"
@@ -297,6 +298,20 @@ func (u *productUsecase) UploadImage(ctx context.Context, user model.SessionUser
 
 	if err := input.ValidateDTOUploadImageProductRequest(); err != nil {
 		logger.Error(err)
+		return err
+	}
+
+	split := "products/"
+	dirPath := strings.Split(input.Path, split)[0]
+
+	// Check if the directory exists
+	if _, err := os.Stat(dirPath + split); os.IsNotExist(err) {
+		// Directory does not exist, attempt to create it
+		if err := os.MkdirAll(dirPath+split, os.ModePerm); err != nil {
+			return err
+		}
+	} else if err != nil {
+		// An error occurred that is not related to the existence of the directory
 		return err
 	}
 
